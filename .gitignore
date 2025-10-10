@@ -6,3 +6,4 @@
 .cache/
 **/build/**
 webots/controllers/taget_controller/taget_controller
+*.log
