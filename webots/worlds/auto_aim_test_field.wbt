@@ -1,0 +1,418 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/RedBricks.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/OldSteel.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/RoughPolymer.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation 0.12962872685000484 0.009140729469836073 -0.9915204688961323 3.001986322796609
+  position 4.225942680941919 2.0398540653811654 1.4397152857814823
+  follow "tagret"
+}
+TexturedBackground {
+  texture "factory"
+}
+TexturedBackgroundLight {
+  texture "noon_sunny_empty"
+}
+RectangleArena {
+  floorSize 12 15
+  floorAppearance Parquetry {
+    type "dark strip"
+  }
+}
+Robot {
+  translation 0 0 0.05
+  children [
+    Solid {
+      children [
+        SliderJoint {
+          jointParameters JointParameters {
+          }
+          device [
+            LinearMotor {
+              name "target_motor_z"
+              maxPosition 0.5
+            }
+          ]
+          endPoint Solid {
+            translation 0 0 -0.25
+            children [
+              SliderJoint {
+                jointParameters JointParameters {
+                  axis 1 0 0
+                }
+                device [
+                  LinearMotor {
+                    name "target_motor_x"
+                  }
+                ]
+                endPoint Solid {
+                  translation 0 0 0.4
+                  rotation 0 1 0 1.5707996938995747
+                  children [
+                    SliderJoint {
+                      jointParameters JointParameters {
+                        axis 0 1 0
+                      }
+                      device [
+                        LinearMotor {
+                          name "target_motor_y"
+                        }
+                      ]
+                      endPoint Solid {
+                        rotation 1 0 0 1.5707996938995747
+                        children [
+                          HingeJoint {
+                            jointParameters HingeJointParameters {
+                              axis -1 0 0
+                              anchor 0 0 -0.25
+                            }
+                            device [
+                              RotationalMotor {
+                                name "target_motor_yaw"
+                              }
+                            ]
+                            endPoint Solid {
+                              translation 0 0 -0.25
+                              rotation -1 0 0 0
+                              children [
+                                HingeJoint {
+                                  jointParameters HingeJointParameters {
+                                    axis 0 1 0
+                                  }
+                                  device [
+                                    RotationalMotor {
+                                      name "target_motor_pitch"
+                                    }
+                                  ]
+                                  endPoint Solid {
+                                    rotation 0 1 0 0
+                                    children [
+                                      HingeJoint {
+                                        jointParameters HingeJointParameters {
+                                          axis 0 0 1
+                                        }
+                                        device [
+                                          RotationalMotor {
+                                            name "target_motor_roll"
+                                          }
+                                        ]
+                                        endPoint Solid {
+                                          translation 0 0 -0.1
+                                          children [
+                                            Solid {
+                                              translation 0 0 -0.01
+                                              rotation 0 0 1 3.141592653589793
+                                              children [
+                                                Shape {
+                                                  appearance Appearance {
+                                                    material Material {
+                                                    }
+                                                    texture ImageTexture {
+                                                      url [
+                                                        "../imgs/num_4.png"
+                                                      ]
+                                                    }
+                                                    textureTransform TextureTransform {
+                                                      rotation 1.56
+                                                    }
+                                                  }
+                                                  geometry Box {
+                                                    size 0.075 0.075 0.001
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                            LED {
+                                              translation 0 0.114 -0.013
+                                              children [
+                                                Shape {
+                                                  appearance PBRAppearance {
+                                                    transparency 0.99
+                                                    metalness 0
+                                                    emissiveIntensity 10000
+                                                  }
+                                                  geometry Box {
+                                                    size 0.053 0.005 0.012
+                                                  }
+                                                }
+                                              ]
+                                              name "led1"
+                                              recognitionColors [
+                                                0 0 0
+                                              ]
+                                              gradual TRUE
+                                            }
+                                            LED {
+                                              translation 0 0.0705 -0.01
+                                              children [
+                                                Shape {
+                                                  appearance PBRAppearance {
+                                                    transparency 0.99
+                                                    metalness 0
+                                                    emissiveIntensity 10000
+                                                  }
+                                                  geometry Box {
+                                                    size 0.053 0.005 0.012
+                                                  }
+                                                }
+                                              ]
+                                              name "led3"
+                                              recognitionColors [
+                                                0 0 0
+                                              ]
+                                              gradual TRUE
+                                            }
+                                            LED {
+                                              translation 0 -0.0705 -0.01
+                                              children [
+                                                Shape {
+                                                  appearance PBRAppearance {
+                                                    transparency 0.99
+                                                    metalness 0
+                                                    emissiveIntensity 10000
+                                                  }
+                                                  geometry Box {
+                                                    size 0.053 0.005 0.012
+                                                  }
+                                                }
+                                              ]
+                                              name "led4"
+                                              recognitionColors [
+                                                0 0 0
+                                              ]
+                                              gradual TRUE
+                                            }
+                                            LED {
+                                              translation 0 -0.114 -0.01
+                                              children [
+                                                Shape {
+                                                  appearance PBRAppearance {
+                                                    transparency 0.99
+                                                    metalness 0
+                                                    emissiveIntensity 10000
+                                                  }
+                                                  geometry Box {
+                                                    size 0.053 0.005 0.012
+                                                  }
+                                                }
+                                              ]
+                                              name "led2"
+                                              recognitionColors [
+                                                0 0 0
+                                              ]
+                                              gradual TRUE
+                                            }
+                                            Shape {
+                                              appearance RoughPolymer {
+                                                baseColor 0 0 0.1
+                                              }
+                                              geometry Box {
+                                                size 0.115 0.235 0.02
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                          Shape {
+                            appearance OldSteel {
+                            }
+                            geometry Cylinder {
+                              height 0.5
+                              radius 0.02
+                            }
+                          }
+                        ]
+                      }
+                    }
+                    Shape {
+                      appearance OldSteel {
+                      }
+                      geometry Cylinder {
+                        height 0.5
+                        radius 0.02
+                      }
+                    }
+                  ]
+                }
+              }
+              Shape {
+                appearance OldSteel {
+                }
+                geometry Cylinder {
+                  height 0.8
+                  radius 0.02
+                }
+              }
+            ]
+          }
+        }
+        Shape {
+          appearance RedBricks {
+          }
+          geometry Box {
+            size 0.3 0.3 0.1
+          }
+        }
+      ]
+    }
+  ]
+  name "tagret"
+  controller "taget_controller"
+}
+Robot {
+  translation 0 3 0.05
+  rotation 0 0 1 3.141592653589793
+  children [
+    Solid {
+      children [
+        SliderJoint {
+          jointParameters JointParameters {
+          }
+          device [
+            LinearMotor {
+              name "target_motor_z"
+              maxPosition 0.5
+            }
+          ]
+          endPoint Solid {
+            translation 0 0 -0.25
+            children [
+              SliderJoint {
+                jointParameters JointParameters {
+                  axis 1 0 0
+                }
+                device [
+                  LinearMotor {
+                    name "target_motor_x"
+                  }
+                ]
+                endPoint Solid {
+                  translation 0 0 0.4
+                  rotation 0 1 0 1.5707996938995747
+                  children [
+                    SliderJoint {
+                      jointParameters JointParameters {
+                        axis 0 1 0
+                      }
+                      device [
+                        LinearMotor {
+                          name "target_motor_y"
+                        }
+                      ]
+                      endPoint Solid {
+                        rotation 1 0 0 1.5707996938995747
+                        children [
+                          HingeJoint {
+                            jointParameters HingeJointParameters {
+                              axis -1 0 0
+                              anchor 0 0 -0.25
+                            }
+                            device [
+                              RotationalMotor {
+                                name "target_motor_yaw"
+                              }
+                            ]
+                            endPoint Solid {
+                              translation 0 0 -0.25
+                              rotation -1 0 0 0
+                              children [
+                                HingeJoint {
+                                  jointParameters HingeJointParameters {
+                                    axis 0 1 0
+                                  }
+                                  device [
+                                    RotationalMotor {
+                                      name "target_motor_pitch"
+                                    }
+                                  ]
+                                  endPoint Solid {
+                                    rotation 0 1 0 0
+                                    children [
+                                      HingeJoint {
+                                        jointParameters HingeJointParameters {
+                                          axis 0 0 1
+                                        }
+                                        device [
+                                          RotationalMotor {
+                                            name "target_motor_roll"
+                                          }
+                                        ]
+                                        endPoint Solid {
+                                          rotation 0 0 1 3.141592653589793
+                                          children [
+                                            Camera {
+                                              translation 0 0 -0.05
+                                              rotation 0 1 0 1.5707996938995747
+                                              width 640
+                                              height 480
+                                              exposure 0.15
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                          Shape {
+                            appearance OldSteel {
+                            }
+                            geometry Cylinder {
+                              height 0.5
+                              radius 0.02
+                            }
+                          }
+                        ]
+                      }
+                    }
+                    Shape {
+                      appearance OldSteel {
+                      }
+                      geometry Cylinder {
+                        height 0.5
+                        radius 0.02
+                      }
+                    }
+                  ]
+                }
+              }
+              Shape {
+                appearance OldSteel {
+                }
+                geometry Cylinder {
+                  height 0.8
+                  radius 0.02
+                }
+              }
+            ]
+          }
+        }
+        Shape {
+          appearance RedBricks {
+          }
+          geometry Box {
+            size 0.3 0.3 0.1
+          }
+        }
+      ]
+    }
+  ]
+  name "self"
+  controller "<extern>"
+}

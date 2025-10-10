@@ -1,0 +1,5 @@
+modules:
+- xrobot-org/BlinkLED
+- qdu-future/CameraBase
+- qdu-future/ArmorDetector
+- qdu-future/ArmorTracker
