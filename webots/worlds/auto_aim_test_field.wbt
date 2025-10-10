@@ -9,10 +9,11 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
 
 WorldInfo {
+  basicTimeStep 8
 }
 Viewpoint {
-  orientation 0.12962872685000484 0.009140729469836073 -0.9915204688961323 3.001986322796609
-  position 4.225942680941919 2.0398540653811654 1.4397152857814823
+  orientation -0.003805249731419375 -0.9999268310010748 0.011482713905242779 5.643141608105953
+  position -4.350361942856212 1.1223366844491254 4.530139426677743
   follow "tagret"
 }
 TexturedBackground {
@@ -354,7 +355,27 @@ Robot {
                                         endPoint Solid {
                                           rotation 0 0 1 3.141592653589793
                                           children [
-                                            Camera {
+                                            LED {
+                                              translation 0 0 -0.013
+                                              children [
+                                                Shape {
+                                                  appearance PBRAppearance {
+                                                    transparency 0.99
+                                                    metalness 0
+                                                    emissiveIntensity 10000
+                                                  }
+                                                  geometry Box {
+                                                    size 0.02 0.02 0.02
+                                                  }
+                                                }
+                                              ]
+                                              name "fire_led"
+                                              recognitionColors [
+                                                0 0 0
+                                              ]
+                                              gradual TRUE
+                                            }
+                                            DEF camera Camera {
                                               translation 0 0 -0.05
                                               rotation 0 1 0 1.5707996938995747
                                               width 640
@@ -415,4 +436,5 @@ Robot {
   ]
   name "self"
   controller "<extern>"
+  supervisor TRUE
 }

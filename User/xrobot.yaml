@@ -1,6 +1,16 @@
 global_settings:
   monitor_sleep_ms: 1000
 modules:
+- id: WebotsReferee_0
+  name: WebotsReferee
+  constructor_args:
+    bullet_speed: 30.0
+- id: WebotsGimbal_0
+  name: WebotsGimbal
+  constructor_args: {}
+- id: WebotsFireNotify_0
+  name: WebotsFireNotify
+  constructor_args: {}
 - id: WebotsCamera_0
   name: WebotsCamera
   constructor_args:
@@ -110,3 +120,43 @@ modules:
         - 0.0
         - 0.0
         - 0.0
+- id: SharedTopic_Host
+  name: SharedTopic
+  constructor_args:
+    uart_name: uart_host
+    task_stack_depth: 8192
+    buffer_size: 256
+    topic_name:
+    - - bullet_speed
+      - referee
+    - - rotation
+      - gimbal
+- id: SharedTopicClient_Host
+  name: SharedTopicClient
+  constructor_args:
+    uart_name: uart_host
+    task_stack_depth: 8192
+    buffer_size: 256
+    topic_names:
+    - - fire_notify
+      - tracker
+    - - target_eulr
+      - tracker
+- id: SharedTopic_MCU
+  name: SharedTopic
+  constructor_args:
+    uart_name: uart_client
+    task_stack_depth: 8192
+    buffer_size: 256
+    topic_name:
+    - fire_notify
+    - target_eulr
+- id: SharedTopicClient_MCU
+  name: SharedTopicClient
+  constructor_args:
+    uart_name: uart_client
+    task_stack_depth: 8192
+    buffer_size: 256
+    topic_names:
+    - bullet_speed
+    - rotation
