@@ -13,7 +13,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation -0.003805249731419375 -0.9999268310010748 0.011482713905242779 5.643141608105953
-  position -4.350361942856212 1.1223366844491254 4.530139426677743
+  position -3.024154529067522 1.506374359492961 3.42138296525465
   follow "tagret"
 }
 TexturedBackground {
@@ -378,9 +378,15 @@ Robot {
                                             DEF camera Camera {
                                               translation 0 0 -0.05
                                               rotation 0 1 0 1.5707996938995747
-                                              width 640
-                                              height 480
-                                              exposure 0.15
+                                              fieldOfView 0.596886
+                                              width 800
+                                              height 600
+                                              exposure 0.17
+                                              lens Lens {
+                                                center 0.495363 0.506862
+                                                radialCoefficients -0.0955869 0.30137
+                                                tangentialCoefficients -0.000821847 0.000245824
+                                              }
                                             }
                                           ]
                                         }
