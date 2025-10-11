@@ -15,28 +15,28 @@ modules:
   name: WebotsCamera
   constructor_args:
     info:
-      width: 1440
-      height: 1080
-      step: 4320
+      width: 800
+      height: 600
+      step: 2400
       timestamp: 0
       encoding: CameraBase::Encoding::RGB8
       camera_matrix:
-      - 2340.46464112537
+      - 1300.258730617794   # fx
       - 0.0
-      - 713.3224120377864
+      - 396.2904            # cx = 0.495363 * 800
       - 0.0
-      - 2336.8745144649124
-      - 547.4106752074272
+      - 1300.258730617794   # fy
+      - 304.1172            # cy = 0.506862 * 600
       - 0.0
       - 0.0
       - 1.0
       distortion_model: CameraBase::DistortionModel::PLUMB_BOB
       distortion_coefficients:
       - -0.09558691800515781
-      - 0.3013704144837407
+      -  0.3013704144837407
       - -0.0008218465102445683
-      - 0.00024582434306615617
-      - 0.0
+      -  0.00024582434306615617
+      -  0.0
       rectification_matrix:
       - 1.0
       - 0.0
@@ -63,7 +63,7 @@ modules:
     runtime:
       device_name: camera
       fps: 30
-      exposure: 0.17
+      exposure: 2.0
       gain: 0.0
 - id: ArmorDetector_0
   name: ArmorDetector
@@ -76,15 +76,15 @@ modules:
       detect_color: 0
       binary_thres: 85
       light:
-        min_ratio: 0.1
-        max_ratio: 0.4
-        max_angle: 40.0
+        min_ratio: 0.05
+        max_ratio: 0.6
+        max_angle: 60.0
       armor:
-        min_light_ratio: 0.7
-        min_small_center_distance: 0.8
+        min_light_ratio: 0.5
+        min_small_center_distance: 0.7
         max_small_center_distance: 3.2
         min_large_center_distance: 3.2
-        max_large_center_distance: 5.5
+        max_large_center_distance: 5.8
         max_angle: 35.0
 - id: ArmorTracker_0
   name: ArmorTracker
@@ -92,17 +92,18 @@ modules:
     cfg:
       limits:
         max_armor_distance: 10.0
+        max_z_position: 10.0
       match:
-        max_match_distance: 0.15
+        max_match_distance: 0.3
         max_match_yaw_diff: 1.0
       thresholds:
         tracking_thres: 5
         lost_time_thres: 0.3
       solver:
-        k: 0.092
-        bias_time: 100
-        s_bias: 0.19133
-        z_bias: 0.21265
+        k: 0.00000001
+        bias_time: 0
+        s_bias: 0.0
+        z_bias: 0.0
       ekf:
         sigma2_q_xyz: 20.0
         sigma2_q_yaw: 100.0
@@ -112,10 +113,10 @@ modules:
         r_yaw: 0.02
       frames:
         rotation:
-        - 0.0
-        - 0.0
-        - 0.0
-        - 0.0
+        - 0.5
+        - -0.5
+        - 0.5
+        - -0.5
         translation:
         - 0.0
         - 0.0

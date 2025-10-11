@@ -7,6 +7,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## 强制启用警告
 add_definitions(-Wall -Werror)
 
+if(NOT AUTO_AIM_PREVIEW_IMAGE)
+set(AUTO_AIM_PREVIEW_IMAGE 1)
+endif()
+
+if(AUTO_AIM_PREVIEW_IMAGE)
+    add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=1)
+else()
+    add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=0)
+endif()
+
 add_compile_options(-g -O0)
 
 ## 导出编译命令以便使用 clangd
