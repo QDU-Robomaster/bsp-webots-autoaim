@@ -1,163 +1,171 @@
 global_settings:
   monitor_sleep_ms: 1000
 modules:
-- id: WebotsReferee_0
-  name: WebotsReferee
-  constructor_args:
-    bullet_speed: 30.0
-- id: WebotsGimbal_0
-  name: WebotsGimbal
-  constructor_args: {}
-- id: WebotsFireNotify_0
-  name: WebotsFireNotify
-  constructor_args: {}
-- id: WebotsCamera_0
-  name: WebotsCamera
-  constructor_args:
-    info:
-      width: 800
-      height: 600
-      step: 2400
-      timestamp: 0
-      encoding: CameraBase::Encoding::RGB8
-      camera_matrix:
-      - 1300.258730617794   # fx
-      - 0.0
-      - 396.2904            # cx = 0.495363 * 800
-      - 0.0
-      - 1300.258730617794   # fy
-      - 304.1172            # cy = 0.506862 * 600
-      - 0.0
-      - 0.0
-      - 1.0
-      distortion_model: CameraBase::DistortionModel::PLUMB_BOB
-      distortion_coefficients:
-      - -0.09558691800515781
-      -  0.3013704144837407
-      - -0.0008218465102445683
-      -  0.00024582434306615617
-      -  0.0
-      rectification_matrix:
-      - 1.0
-      - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-      - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-      projection_matrix:
-      - 2323.906982421875
-      - 0.0
-      - 712.9446224841959
-      - 0.0
-      - 0.0
-      - 2324.767578125
-      - 546.6426169058832
-      - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-      - 0.0
-    runtime:
-      device_name: camera
-      fps: 30
-      exposure: 2.0
-      gain: 0.0
-- id: ArmorDetector_0
-  name: ArmorDetector
-  constructor_args:
-    cfg:
-      classifier:
-        ignore_classes:
-        - ArmorNumber::NEGATIVE
-        threshold: 0.5
-      detect_color: 0
-      binary_thres: 85
-      light:
-        min_ratio: 0.05
-        max_ratio: 0.6
-        max_angle: 60.0
-      armor:
-        min_light_ratio: 0.5
-        min_small_center_distance: 0.7
-        max_small_center_distance: 3.2
-        min_large_center_distance: 3.2
-        max_large_center_distance: 5.8
-        max_angle: 35.0
-- id: ArmorTracker_0
-  name: ArmorTracker
-  constructor_args:
-    cfg:
-      limits:
-        max_armor_distance: 10.0
-        max_z_position: 10.0
-      match:
-        max_match_distance: 0.3
-        max_match_yaw_diff: 1.0
-      thresholds:
-        tracking_thres: 5
-        lost_time_thres: 0.3
-      solver:
-        k: 0.00000001
-        bias_time: 0
-        s_bias: 0.0
-        z_bias: 0.0
-      ekf:
-        sigma2_q_xyz: 20.0
-        sigma2_q_yaw: 100.0
-        sigma2_q_r: 800
-      noise:
-        r_xyz_factor: 0.05
-        r_yaw: 0.02
-      frames:
-        rotation:
-        - 0.5
-        - -0.5
-        - 0.5
-        - -0.5
-        translation:
-        - 0.0
-        - 0.0
-        - 0.0
-- id: SharedTopic_Host
-  name: SharedTopic
-  constructor_args:
-    uart_name: uart_host
-    task_stack_depth: 8192
-    buffer_size: 256
-    topic_name:
-    - - bullet_speed
-      - referee
-    - - rotation
-      - gimbal
-- id: SharedTopicClient_Host
-  name: SharedTopicClient
-  constructor_args:
-    uart_name: uart_host
-    task_stack_depth: 8192
-    buffer_size: 256
-    topic_names:
-    - - fire_notify
-      - tracker
-    - - target_eulr
-      - tracker
-- id: SharedTopic_MCU
-  name: SharedTopic
-  constructor_args:
-    uart_name: uart_client
-    task_stack_depth: 8192
-    buffer_size: 256
-    topic_name:
-    - fire_notify
-    - target_eulr
-- id: SharedTopicClient_MCU
-  name: SharedTopicClient
-  constructor_args:
-    uart_name: uart_client
-    task_stack_depth: 8192
-    buffer_size: 256
-    topic_names:
-    - bullet_speed
-    - rotation
+  - id: WebotsReferee_0
+    name: WebotsReferee
+    constructor_args:
+      bullet_speed: 30.0
+  - id: WebotsGimbal_0
+    name: WebotsGimbal
+    constructor_args: {}
+  - id: WebotsFireNotify_0
+    name: WebotsFireNotify
+    constructor_args: {}
+  - id: WebotsCamera_0
+    name: WebotsCamera
+    constructor_args:
+      info:
+        width: 800
+        height: 600
+        step: 2400
+        timestamp: 0
+        encoding: CameraBase::Encoding::RGB8
+        camera_matrix:
+          - 1300.258730617794 # fx
+          - 0.0
+          - 396.2904 # cx = 0.495363 * 800
+          - 0.0
+          - 1300.258730617794 # fy
+          - 304.1172 # cy = 0.506862 * 600
+          - 0.0
+          - 0.0
+          - 1.0
+        distortion_model: CameraBase::DistortionModel::PLUMB_BOB
+        distortion_coefficients:
+          - -0.09558691800515781
+          - 0.3013704144837407
+          - -0.0008218465102445683
+          - 0.00024582434306615617
+          - 0.0
+        rectification_matrix:
+          - 1.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 1.0
+          - 0.0
+          - 0.0
+          - 0.0
+          - 1.0
+        projection_matrix:
+          - 2323.906982421875
+          - 0.0
+          - 712.9446224841959
+          - 0.0
+          - 0.0
+          - 2324.767578125
+          - 546.6426169058832
+          - 0.0
+          - 0.0
+          - 0.0
+          - 1.0
+          - 0.0
+      runtime:
+        device_name: camera
+        fps: 30
+        exposure: 2.0
+        gain: 0.0
+  - id: ArmorDetector_0
+    name: ArmorDetector
+    constructor_args:
+      cfg:
+        classifier:
+          ignore_classes:
+            - ArmorNumber::NEGATIVE
+          threshold: 0.5
+        detect_color: 0
+        binary_thres: 85
+        light:
+          min_ratio: 0.05
+          max_ratio: 0.6
+          max_angle: 48.0
+        armor:
+          min_light_ratio: 0.5
+          min_small_center_distance: 0.7
+          max_small_center_distance: 3.2
+          min_large_center_distance: 3.2
+          max_large_center_distance: 5.8
+          max_angle: 35.0
+  - id: ArmorTracker_0
+    name: ArmorTracker
+    constructor_args:
+      cfg:
+        limits:
+          max_armor_distance: 10.0
+          max_z_position: 10.0
+        match:
+          max_match_distance: 0.3
+          max_match_yaw_diff: 1.0
+        thresholds:
+          tracking_thres: 5
+          lost_time_thres: 0.3
+        solver:
+          k: 0.00000001
+          bias_time: 0
+          s_bias: 0.0
+          z_bias: 0.0
+          calculate_mode: SolveTrajectory::TABLE_LOOKUP
+          table_config:
+            max_x: 13.0
+            min_x: 0.0
+            max_y: 1.0
+            min_y: -1.0
+            precision: 0.01
+            filename: "table.bin"
+        ekf:
+          sigma2_q_xyz: 20.0
+          sigma2_q_yaw: 100.0
+          sigma2_q_r: 800
+        noise:
+          r_xyz_factor: 0.05
+          r_yaw: 0.02
+        frames:
+          rotation:
+            - 0.5
+            - -0.5
+            - 0.5
+            - -0.5
+          translation:
+            - 0.0
+            - 0.0
+            - 0.0
+  - id: SharedTopic_Host
+    name: SharedTopic
+    constructor_args:
+      uart_name: uart_host
+      task_stack_depth: 8192
+      buffer_size: 256
+      topic_name:
+        - - bullet_speed
+          - referee
+        - - rotation
+          - gimbal
+  - id: SharedTopicClient_Host
+    name: SharedTopicClient
+    constructor_args:
+      uart_name: uart_host
+      task_stack_depth: 8192
+      buffer_size: 256
+      topic_names:
+        - - fire_notify
+          - tracker
+        - - target_eulr
+          - tracker
+  - id: SharedTopic_MCU
+    name: SharedTopic
+    constructor_args:
+      uart_name: uart_client
+      task_stack_depth: 8192
+      buffer_size: 256
+      topic_name:
+        - fire_notify
+        - target_eulr
+  - id: SharedTopicClient_MCU
+    name: SharedTopicClient
+    constructor_args:
+      uart_name: uart_client
+      task_stack_depth: 8192
+      buffer_size: 256
+      topic_names:
+        - bullet_speed
+        - rotation
