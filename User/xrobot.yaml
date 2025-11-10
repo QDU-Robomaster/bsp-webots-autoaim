@@ -104,7 +104,7 @@ modules:
           bias_time: 0
           s_bias: 0.0
           z_bias: 0.0
-          calculate_mode: SolveTrajectory::TABLE_LOOKUP
+          calculate_mode: SolveTrajectory::CalculateMode::TABLE_LOOKUP
           table_config:
             max_x: 13.0
             min_x: 0.0
