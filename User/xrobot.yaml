@@ -111,7 +111,7 @@ modules:
             max_y: 1.0
             min_y: -1.0
             precision: 0.01
-            filename: "table.bin"
+            filename: "Modules/ArmorTracker/table.bin"
         ekf:
           sigma2_q_xyz: 20.0
           sigma2_q_yaw: 100.0
