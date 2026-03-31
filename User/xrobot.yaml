@@ -69,56 +69,43 @@ modules:
     name: ArmorDetector
     constructor_args:
       cfg:
-        classifier:
-          ignore_classes:
-            - ArmorNumber::NEGATIVE
-          threshold: 0.5
         detect_color: 0
-        binary_thres: 85
-        light:
-          min_ratio: 0.05
-          max_ratio: 0.6
-          max_angle: 48.0
-        armor:
-          min_light_ratio: 0.5
-          min_small_center_distance: 0.7
-          max_small_center_distance: 3.2
-          min_large_center_distance: 3.2
-          max_large_center_distance: 5.8
-          max_angle: 35.0
+        traditional:
+          threshold: 85.0
+          max_angle_error_deg: 48.0
+          min_lightbar_ratio: 0.05
+          max_lightbar_ratio: 0.6
+          min_lightbar_length: 8.0
+          min_armor_ratio: 0.5
+          max_armor_ratio: 5.8
+          max_side_ratio: 3.2
+          max_rectangular_error_deg: 35.0
+        yolo:
+          use_roi: false
+          roi_x: 0
+          roi_y: 0
+          roi_width: 800
+          roi_height: 600
+          use_traditional_refine: true
+          score_threshold: 0.7
+          nms_threshold: 0.3
+          min_confidence: 0.8
+        debug:
+          preview: false
+          show_binary: false
+          wait_key_ms: 1
+          overlay_scale: 0.75
   - id: ArmorTracker_0
     name: ArmorTracker
     constructor_args:
       cfg:
         limits:
           max_armor_distance: 10.0
-          max_z_position: 10.0
-        match:
-          max_match_distance: 0.3
-          max_match_yaw_diff: 1.0
+          max_z_position: 1.0
         thresholds:
-          tracking_thres: 5
-          lost_time_thres: 0.3
-        solver:
-          k: 0.00000001
-          bias_time: 0
-          s_bias: 0.0
-          z_bias: 0.0
-          calculate_mode: SolveTrajectory::CalculateMode::NORMAL
-          table_config:
-            max_x: 13.0
-            min_x: 0.0
-            max_y: 1.0
-            min_y: -1.0
-            precision: 0.01
-            filename: "Modules/ArmorTracker/table.bin"
-        ekf:
-          sigma2_q_xyz: 20.0
-          sigma2_q_yaw: 100.0
-          sigma2_q_r: 800
-        noise:
-          r_xyz_factor: 0.05
-          r_yaw: 0.02
+          min_detect_count: 5
+          max_temp_lost_count: 15
+          outpost_max_temp_lost_count: 75
         frames:
           rotation:
             - 0.5
@@ -129,6 +116,28 @@ modules:
             - 0.0
             - 0.0
             - 0.0
+        debug:
+          preview: false
+          wait_key_ms: 1
+          overlay_scale: 0.75
+          draw_candidates: true
+  - id: Aimer_0
+    name: Aimer
+    constructor_args:
+      cfg:
+        yaw_offset: 0.0
+        pitch_offset: 0.0
+        comming_angle: 60.0
+        leaving_angle: 20.0
+        yaw_rate_threshold: 2.0
+        high_speed_delay_time: 0.03
+        low_speed_delay_time: 0.015
+        default_bullet_speed: 30.0
+        min_valid_bullet_speed: 14.0
+        first_tolerance: 3.0
+        second_tolerance: 2.0
+        judge_distance: 2.0
+        auto_fire: true
   - id: SharedTopic_Host
     name: SharedTopic
     constructor_args:
@@ -147,7 +156,7 @@ modules:
       task_stack_depth: 8192
       buffer_size: 256
       topic_names:
-        - - fire_notify
+        - - send
           - tracker
         - - target_eulr
           - tracker
@@ -158,7 +167,7 @@ modules:
       task_stack_depth: 8192
       buffer_size: 256
       topic_name:
-        - fire_notify
+        - send
         - target_eulr
   - id: SharedTopicClient_MCU
     name: SharedTopicClient
