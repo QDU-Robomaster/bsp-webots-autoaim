@@ -1,17 +1,17 @@
 global_settings:
   monitor_sleep_ms: 1000
 modules:
-  - id: WebotsReferee_0
+  - id: webots_referee
     name: WebotsReferee
     constructor_args:
       bullet_speed: 30.0
-  - id: WebotsGimbal_0
+  - id: webots_gimbal
     name: WebotsGimbal
     constructor_args: {}
-  - id: WebotsFireNotify_0
+  - id: webots_fire_notify
     name: WebotsFireNotify
     constructor_args: {}
-  - id: WebotsCamera_0
+  - id: webots_camera
     name: WebotsCamera
     constructor_args:
       info:
@@ -65,7 +65,7 @@ modules:
         fps: 30
         exposure: 2.0
         gain: 0.0
-  - id: ArmorDetector_0
+  - id: armor_detector
     name: ArmorDetector
     constructor_args:
       cfg:
@@ -95,7 +95,7 @@ modules:
           show_binary: false
           wait_key_ms: 1
           overlay_scale: 0.75
-  - id: ArmorTracker_0
+  - id: armor_tracker
     name: ArmorTracker
     constructor_args:
       cfg:
@@ -121,7 +121,7 @@ modules:
           wait_key_ms: 1
           overlay_scale: 0.75
           draw_candidates: true
-  - id: Aimer_0
+  - id: aimer
     name: Aimer
     constructor_args:
       cfg:
@@ -138,7 +138,7 @@ modules:
         second_tolerance: 2.0
         judge_distance: 2.0
         auto_fire: true
-  - id: SharedTopic_Host
+  - id: shared_topic_host
     name: SharedTopic
     constructor_args:
       uart_name: uart_host
@@ -149,7 +149,7 @@ modules:
           - referee
         - - rotation
           - gimbal
-  - id: SharedTopicClient_Host
+  - id: shared_topic_client_host
     name: SharedTopicClient
     constructor_args:
       uart_name: uart_host
@@ -160,7 +160,7 @@ modules:
           - tracker
         - - target_eulr
           - tracker
-  - id: SharedTopic_MCU
+  - id: shared_topic_mcu
     name: SharedTopic
     constructor_args:
       uart_name: uart_client
@@ -169,7 +169,7 @@ modules:
       topic_name:
         - send
         - target_eulr
-  - id: SharedTopicClient_MCU
+  - id: shared_topic_client_mcu
     name: SharedTopicClient
     constructor_args:
       uart_name: uart_client
