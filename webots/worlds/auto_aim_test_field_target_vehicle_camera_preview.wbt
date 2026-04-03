@@ -1,36 +1,26 @@
 #VRML_SIM R2025a utf8
 
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "../protos/TargetVehicle4ArmorSimple.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/RedBricks.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/OldSteel.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
 
 WorldInfo {
   basicTimeStep 8
 }
 Viewpoint {
-  orientation -0.35636030537072944 -0.005345805521984802 0.9343333212079089 3.169622920248975
-  position 2.8612476306297996 1.604437154171942 3.811452005335898
-  follow "tagret"
+  orientation -0.23040265090737777 0.008499950748451371 0.9730582558573391 3.0698278785586064
+  position 2.6725591504760913 -0.15611661605442184 1.4728030298481085
+  follow "target"
 }
-TexturedBackground {
-  texture "dawn_cloudy_empty"
-  luminosity 2
-}
-TexturedBackgroundLight {
-  texture "noon_sunny_empty"
-  luminosity 0
-}
-RectangleArena {
-  floorSize 12 15
-  floorAppearance Parquetry {
-    type "dark strip"
-  }
+Background {
+  skyColor [
+    0.08 0.08 0.08
+  ]
 }
 Robot {
-  translation 0 0 0.05
+  translation 0 1.21215e-06 -0.28
+  rotation 1 0 0 1.5708
   children [
     Solid {
       children [
@@ -104,130 +94,24 @@ Robot {
                                         device [
                                           RotationalMotor {
                                             name "target_motor_roll"
+                                            maxVelocity 200
                                           }
                                         ]
                                         endPoint Solid {
                                           translation 0 0 -0.1
                                           children [
-                                            Solid {
-                                              translation 0 0 -0.01
-                                              rotation 0 0 1 3.141592653589793
+                                            DEF TARGET_SPIN Pose {
+                                              rotation 0 0 1 0
                                               children [
-                                                Shape {
-                                                  appearance Appearance {
-                                                    material Material {
+                                                Pose {
+                                                  rotation 1 0 0 3.14159265359
+                                                  children [
+                                                    TargetVehicle4ArmorSimple {
+                                                      name "target_vehicle"
                                                     }
-                                                    texture ImageTexture {
-                                                      url [
-                                                        "../imgs/num_4.jpg"
-                                                      ]
-                                                    }
-                                                    textureTransform TextureTransform {
-                                                      rotation 1.56
-                                                      scale 0.61 0.83
-                                                      translation 0.1 0.32
-                                                    }
-                                                  }
-                                                  geometry Box {
-                                                    size 0.11 0.09 0.001
-                                                  }
+                                                  ]
                                                 }
                                               ]
-                                            }
-                                            LED {
-                                              translation 0 0.114 -0.013
-                                              children [
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    transparency 0.6
-                                                    roughness 0.5
-                                                    metalness 0
-                                                    emissiveIntensity 100000
-                                                  }
-                                                  geometry Box {
-                                                    size 0.053 0.005 0.012
-                                                  }
-                                                }
-                                              ]
-                                              name "led1"
-                                              recognitionColors [
-                                                0 0 0
-                                              ]
-                                              gradual TRUE
-                                            }
-                                            LED {
-                                              translation 0 0.0705 -0.01
-                                              children [
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    transparency 0.6
-                                                    roughness 0.5
-                                                    metalness 0
-                                                    emissiveIntensity 100000
-                                                  }
-                                                  geometry Box {
-                                                    size 0.053 0.005 0.012
-                                                  }
-                                                }
-                                              ]
-                                              name "led3"
-                                              recognitionColors [
-                                                0 0 0
-                                              ]
-                                              gradual TRUE
-                                            }
-                                            LED {
-                                              translation 0 -0.0705 -0.01
-                                              children [
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    transparency 0.6
-                                                    roughness 0.5
-                                                    metalness 0
-                                                    emissiveIntensity 100000
-                                                  }
-                                                  geometry Box {
-                                                    size 0.053 0.005 0.012
-                                                  }
-                                                }
-                                              ]
-                                              name "led4"
-                                              recognitionColors [
-                                                0 0 0
-                                              ]
-                                              gradual TRUE
-                                            }
-                                            LED {
-                                              translation 0 -0.114 -0.01
-                                              children [
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    transparency 0.6
-                                                    roughness 0.5
-                                                    metalness 0
-                                                    emissiveIntensity 100000
-                                                  }
-                                                  geometry Box {
-                                                    size 0.053 0.005 0.012
-                                                  }
-                                                }
-                                              ]
-                                              name "led2"
-                                              recognitionColors [
-                                                0 0 0
-                                              ]
-                                              gradual TRUE
-                                            }
-                                            Shape {
-                                              appearance Appearance {
-                                                material Material {
-                                                  ambientIntensity 0
-                                                  diffuseColor 1 1 1
-                                                }
-                                              }
-                                              geometry Box {
-                                                size 0.115 0.235 0.02
-                                              }
                                             }
                                           ]
                                         }
@@ -238,51 +122,23 @@ Robot {
                               ]
                             }
                           }
-                          Shape {
-                            appearance OldSteel {
-                            }
-                            geometry Cylinder {
-                              height 0.5
-                              radius 0.02
-                            }
-                          }
                         ]
-                      }
-                    }
-                    Shape {
-                      appearance OldSteel {
-                      }
-                      geometry Cylinder {
-                        height 0.5
-                        radius 0.02
                       }
                     }
                   ]
                 }
               }
-              Shape {
-                appearance OldSteel {
-                }
-                geometry Cylinder {
-                  height 0.8
-                  radius 0.02
-                }
-              }
             ]
-          }
-        }
-        Shape {
-          appearance RedBricks {
-          }
-          geometry Box {
-            size 0.3 0.3 0.1
           }
         }
       ]
     }
   ]
-  name "tagret"
-  controller "taget_controller"
+  name "target"
+  controller "forced_target_simple"
+  supervisor TRUE
+}
+Floor {
 }
 Robot {
   translation 0 3 0.15
@@ -397,6 +253,11 @@ Robot {
                                                 radialCoefficients -0.0955869 0.30137
                                                 tangentialCoefficients -0.000821847 0.000245824
                                               }
+                                            }
+                                            Display {
+                                              width 800
+                                              height 600
+                                              name "preview_display"
                                             }
                                           ]
                                         }
