@@ -69,7 +69,7 @@ modules:
     name: ArmorDetector
     constructor_args:
       cfg:
-        detect_color: 0
+        detect_color: 2
         traditional:
           threshold: 85.0
           max_angle_error_deg: 48.0
