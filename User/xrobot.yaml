@@ -87,7 +87,7 @@ modules:
           roi_width: 600
           roi_height: 600
           use_traditional_refine: true
-          score_threshold: 0.7
+          score_threshold: 0.5
           nms_threshold: 0.3
           min_confidence: 0.5
         debug:
