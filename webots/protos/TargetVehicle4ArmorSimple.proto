@@ -1,0 +1,185 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "PortableArmorUnitVehicleTuned.proto"
+
+PROTO TargetVehicle4ArmorSimple [
+  field SFString name "target-vehicle"
+]
+{
+  Solid {
+    children [
+      Transform {
+        translation 0 0 0.04
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.08 0.08 0.09
+              roughness 0.95
+              metalness 0.02
+            }
+            geometry Box {
+              size 0.40 0.40 0.10
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0 0 0.13
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.12 0.12 0.13
+              roughness 0.85
+              metalness 0.03
+            }
+            geometry Box {
+              size 0.26 0.26 0.10
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0 0 0.20
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.15 0.15 0.16
+              roughness 0.70
+              metalness 0.05
+            }
+            geometry Box {
+              size 0.17 0.17 0.06
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0.205 0.175 -0.005
+        rotation 1 0 0 1.57079632679
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 0.85
+              metalness 0.15
+            }
+            geometry Cylinder {
+              radius 0.060
+              height 0.040
+            }
+          }
+        ]
+      }
+      Transform {
+        translation -0.205 0.175 -0.005
+        rotation 1 0 0 1.57079632679
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 0.85
+              metalness 0.15
+            }
+            geometry Cylinder {
+              radius 0.060
+              height 0.040
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0.205 -0.175 -0.005
+        rotation 1 0 0 1.57079632679
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 0.85
+              metalness 0.15
+            }
+            geometry Cylinder {
+              radius 0.060
+              height 0.040
+            }
+          }
+        ]
+      }
+      Transform {
+        translation -0.205 -0.175 -0.005
+        rotation 1 0 0 1.57079632679
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.02 0.02 0.02
+              roughness 0.85
+              metalness 0.15
+            }
+            geometry Cylinder {
+              radius 0.060
+              height 0.040
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0 -0.205 0.06
+        children [
+          Transform {
+            rotation 1 0 0 -0.2617993878
+            children [
+              PortableArmorUnitVehicleTuned {
+                name "armor_front"
+              }
+            ]
+          }
+        ]
+      }
+      Transform {
+        rotation 0 0 1 1.57079632679
+        translation 0.205 0 0.11
+        children [
+          Transform {
+            rotation 1 0 0 -0.2617993878
+            children [
+              PortableArmorUnitVehicleTuned {
+                name "armor_right"
+              }
+            ]
+          }
+        ]
+      }
+      Transform {
+        rotation 0 0 1 3.14159265359
+        translation 0 0.205 0.06
+        children [
+          Transform {
+            rotation 1 0 0 -0.2617993878
+            children [
+              PortableArmorUnitVehicleTuned {
+                name "armor_back"
+              }
+            ]
+          }
+        ]
+      }
+      Transform {
+        rotation 0 0 1 -1.57079632679
+        translation -0.205 0 0.11
+        children [
+          Transform {
+            rotation 1 0 0 -0.2617993878
+            children [
+              PortableArmorUnitVehicleTuned {
+                name "armor_left"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    name IS name
+    boundingObject Box {
+      size 0.50 0.50 0.32
+    }
+  }
+}

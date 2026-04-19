@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## 强制启用警告
 add_definitions(-Wall -Werror)
 
-if(NOT AUTO_AIM_PREVIEW_IMAGE)
+if(NOT DEFINED AUTO_AIM_PREVIEW_IMAGE)
 set(AUTO_AIM_PREVIEW_IMAGE 1)
 endif()
 
@@ -17,7 +17,7 @@ else()
     add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=0)
 endif()
 
-add_compile_options(-g -O0)
+add_compile_options(-g -O2)
 
 ## 导出编译命令以便使用 clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -25,7 +25,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # libxr
 set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 set(WEBOTS_HOME /usr/local/webots)
-set(LIBXR_LOG_OUTPUT_LEVEL 2)
+set(LIBXR_LOG_OUTPUT_LEVEL 4)
 add_subdirectory(libxr)
 
 add_executable(${PROJECT_NAME} User/main.cpp)

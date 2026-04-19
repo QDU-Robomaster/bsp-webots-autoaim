@@ -1,11 +1,12 @@
 modules:
 - xrobot-org/BlinkLED
-- qdu-future/CameraBase
-- qdu-future/ArmorDetector
-- qdu-future/ArmorTracker
-- qdu-future/WebotsCamera
+- qdu-future/CameraBase@feat/webots-front-baseline-20260419
+- qdu-future/ArmorDetector@feat/webots-front-baseline-20260419
+- qdu-future/ArmorTracker@feat/webots-front-baseline-20260419
+- qdu-future/Aimer@feat/webots-front-baseline-20260419
+- qdu-future/WebotsCamera@feat/webots-front-baseline-20260419
 - xrobot-org/SharedTopicClient
 - xrobot-org/SharedTopic
 - qdu-future/WebotsReferee
-- qdu-future/WebotsGimbal
-- qdu-future/WebotsFireNotify
+- qdu-future/WebotsGimbal@feat/webots-front-baseline-20260419
+- qdu-future/WebotsFireNotify@feat/webots-front-baseline-20260419

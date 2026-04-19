@@ -19,7 +19,7 @@ modules:
         height: 600
         step: 2400
         timestamp: 0
-        encoding: CameraBase::Encoding::RGB8
+        encoding: CameraBase::Encoding::BGR8
         camera_matrix:
           - 1300.258730617794 # fx
           - 0.0
@@ -62,30 +62,39 @@ modules:
           - 0.0
       runtime:
         device_name: camera
-        fps: 30
-        exposure: 2.0
+        fps: 100
+        exposure: 0.8
         gain: 0.0
   - id: ArmorDetector_0
     name: ArmorDetector
     constructor_args:
       cfg:
-        classifier:
-          ignore_classes:
-            - ArmorNumber::NEGATIVE
-          threshold: 0.5
-        detect_color: 0
-        binary_thres: 85
-        light:
-          min_ratio: 0.05
-          max_ratio: 0.6
-          max_angle: 48.0
-        armor:
-          min_light_ratio: 0.5
-          min_small_center_distance: 0.7
-          max_small_center_distance: 3.2
-          min_large_center_distance: 3.2
-          max_large_center_distance: 5.8
-          max_angle: 35.0
+        detect_color: 2
+        traditional:
+          threshold: 85.0
+          max_angle_error_deg: 48.0
+          min_lightbar_ratio: 1.5
+          max_lightbar_ratio: 20.0
+          min_lightbar_length: 8.0
+          min_armor_ratio: 1.0
+          max_armor_ratio: 5.0
+          max_side_ratio: 1.5
+          max_rectangular_error_deg: 25.0
+        yolo:
+          use_roi: false
+          roi_x: 420
+          roi_y: 50
+          roi_width: 600
+          roi_height: 600
+          use_traditional_refine: true
+          score_threshold: 0.5
+          nms_threshold: 0.3
+          min_confidence: 0.5
+        debug:
+          preview: false
+          show_binary: false
+          wait_key_ms: 1
+          overlay_scale: 0.75
   - id: ArmorTracker_0
     name: ArmorTracker
     constructor_args:
@@ -94,10 +103,10 @@ modules:
           max_armor_distance: 10.0
           max_z_position: 10.0
         match:
-          max_match_distance: 0.3
-          max_match_yaw_diff: 1.0
+          max_match_distance: 0.45
+          max_match_yaw_diff: 1.3
         thresholds:
-          tracking_thres: 5
+          tracking_thres: 2
           lost_time_thres: 0.3
         solver:
           k: 0.00000001

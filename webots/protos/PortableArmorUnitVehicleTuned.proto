@@ -1,0 +1,141 @@
+#VRML_SIM R2025a utf8
+
+PROTO PortableArmorUnitVehicleTuned [
+  field SFString name "portable-armor-unit-vehicle-tuned"
+]
+{
+  Solid {
+    children [
+      Pose {
+        rotation 0 0 1 3.14159265359
+        children [
+          Transform {
+            translation 0 -0.00775 0
+            scale 0.001 0.001 0.001
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.01 0.01 0.01
+                  roughness 1
+                  metalness 0
+                }
+                geometry Mesh {
+                  url [
+                    "../meshes/generated/portable_armor_body.stl"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+      Pose {
+        translation 0 -0.0072 -0.002
+        rotation 1 0 0 -1.57079632679
+        children [
+          Transform {
+            scale 0.001 0.001 0.001
+            children [
+              Pose {
+                translation -67.5 -62.5 -1.5
+                children [
+                  Shape {
+                    appearance PBRAppearance {
+                      baseColor 0.01 0.01 0.01
+                      roughness 1
+                      metalness 0
+                    }
+                    geometry Mesh {
+                      url [
+                        "../meshes/generated/portable_armor_front_cover.stl"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+      DEF XR_VISIBLE_FACE_POSE Pose {
+        translation 0 -0.009 -0.0008
+        rotation 1 0 0 -1.57079632679
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                ambientIntensity 1
+                diffuseColor 1 1 1
+                emissiveColor 1 1 1
+              }
+              texture ImageTexture {
+                url [
+                  "../imgs/armor_digit_3_small_official_512.jpg"
+                ]
+              }
+            }
+            geometry Box {
+              size 0.12 0.11 0.0001
+            }
+          }
+        ]
+      }
+      Transform {
+        translation -0.045 0.0028003 -0.066
+        rotation 1 0 0 1.5707996938995747
+        children [
+          Transform {
+            scale 0.001 0.001 0.001
+            translationStep 0.001
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 1
+                  roughness 1
+                  IBLStrength 5
+                  emissiveColor 0 0 1
+                  emissiveIntensity 175
+                }
+                geometry Mesh {
+                  url [
+                    "../meshes/generated/portable_armor_lightbar.stl"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+      Transform {
+        translation 0.045 0.0028003 -0.066
+        rotation 1 0 0 1.5707996938995747
+        children [
+          Transform {
+            scale -0.001 0.001 0.001
+            translationStep 0.001
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0 0 1
+                  roughness 1
+                  IBLStrength 5
+                  emissiveColor 0 0 1
+                  emissiveIntensity 175
+                }
+                geometry Mesh {
+                  url [
+                    "../meshes/generated/portable_armor_lightbar.stl"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    name IS name
+    boundingObject Box {
+      size 0.145 0.025 0.14
+    }
+  }
+}
