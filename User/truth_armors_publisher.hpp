@@ -24,6 +24,7 @@
 #include "libxr.hpp"
 #include "logger.hpp"
 #include "webots_truth_visible_plane.hpp"
+#include "xrobot_constexpr.hpp"
 
 class TruthArmorsPublisher
 {
@@ -38,16 +39,6 @@ class TruthArmorsPublisher
 
   void InstallBlocking()
   {
-    auto info_topic = LibXR::Topic(LibXR::Topic::WaitTopic("camera_info", UINT32_MAX));
-    auto info_cb = LibXR::Topic::Callback::Create(
-        [](bool, TruthArmorsPublisher* self, LibXR::RawData& data)
-        {
-          auto* camera_info = reinterpret_cast<CameraBase::CameraInfo*>(data.addr_);
-          self->CameraInfoCallback(camera_info);
-        },
-        this);
-    info_topic.RegisterCallback(info_cb);
-
     auto header_topic = LibXR::Topic(LibXR::Topic::WaitTopic("image_header", UINT32_MAX));
     auto header_cb = LibXR::Topic::Callback::Create(
         [](bool, TruthArmorsPublisher* self, LibXR::RawData& data)
@@ -58,7 +49,7 @@ class TruthArmorsPublisher
         this);
     header_topic.RegisterCallback(header_cb);
 
-    XR_LOG_PASS("TruthArmorsPublisher subscribed: camera_info/image_header -> armor_detector/%s",
+    XR_LOG_PASS("TruthArmorsPublisher subscribed: image_header -> armor_detector/%s",
                 topic_name_.c_str());
   }
 
@@ -420,24 +411,16 @@ face_ready:
 
   void ImageHeaderCallback(CameraBase::ImageHeader* image_header)
   {
-    if (image_header == nullptr)
+    if (image_header == nullptr || supervisor_ == nullptr)
     {
       return;
     }
     latest_image_timestamp_us_ = static_cast<uint64_t>(image_header->timestamp);
-  }
-
-  void CameraInfoCallback(CameraBase::CameraInfo* camera_info)
-  {
-    if (camera_info == nullptr || supervisor_ == nullptr)
-    {
-      return;
-    }
 
     ArmorDetectionsMessage msg;
     {
       std::lock_guard<std::mutex> lock(state_lock_);
-      if (!BuildTruthMessage(*camera_info, msg))
+      if (!BuildTruthMessage(ProjectConstexpr::MainCameraInfo, msg))
       {
         return;
       }

@@ -46,7 +46,10 @@ libxr/     框架与底层组件
 
 1. 输入侧发布
    - `image_raw`
-   - `camera_info`
+   - `image_header`
+   - `camera_pose`
+   - `gimbal/rotation`
+   - 相机标定由 `User/xrobot.yaml` 中的 `MainCameraInfo` 以编译期常量注入，不再发布 `camera_info` topic
 2. `ArmorDetector` 输出
    - `armor_detector/armors_result`
    - `armor_detector/metrics`

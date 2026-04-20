@@ -83,9 +83,6 @@ class RuntimeFreqProbe
     LibXR::Topic::Domain gimbal_domain("gimbal");
     LibXR::Topic::Domain tracker_domain("tracker");
 
-    RegisterCounter("camera_info",
-                    LibXR::Topic::WaitTopic("camera_info", UINT32_MAX),
-                    camera_info_count_);
     RegisterCounter("image_raw", LibXR::Topic::WaitTopic("image_raw", UINT32_MAX),
                     image_raw_count_);
     RegisterCounter("gimbal/rotation",
@@ -117,7 +114,6 @@ class RuntimeFreqProbe
     {
       started_ = true;
       last_report_ms_ = now;
-      Snapshot(last_camera_info_count_, camera_info_count_);
       Snapshot(last_image_raw_count_, image_raw_count_);
       Snapshot(last_rotation_count_, rotation_count_);
       Snapshot(last_tracker_target_count_, tracker_target_count_);
@@ -133,7 +129,6 @@ class RuntimeFreqProbe
       return;
     }
 
-    const uint64_t camera_info_now = camera_info_count_.load(std::memory_order_relaxed);
     const uint64_t image_raw_now = image_raw_count_.load(std::memory_order_relaxed);
     const uint64_t rotation_now = rotation_count_.load(std::memory_order_relaxed);
     const uint64_t tracker_target_now =
@@ -141,7 +136,6 @@ class RuntimeFreqProbe
     const uint64_t target_eulr_now = target_eulr_count_.load(std::memory_order_relaxed);
     const uint64_t send_now = send_count_.load(std::memory_order_relaxed);
 
-    const uint64_t camera_info_delta = camera_info_now - last_camera_info_count_;
     const uint64_t image_raw_delta = image_raw_now - last_image_raw_count_;
     const uint64_t rotation_delta = rotation_now - last_rotation_count_;
     const uint64_t tracker_target_delta = tracker_target_now - last_tracker_target_count_;
@@ -149,9 +143,8 @@ class RuntimeFreqProbe
     const uint64_t send_delta = send_now - last_send_count_;
 
     XR_LOG_PASS(
-        "FreqProbe sim_t_ms=%u dt_ms=%u camera_info=%llu(%.1fHz) image_raw=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz)",
+        "FreqProbe sim_t_ms=%u dt_ms=%u image_raw=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz)",
         static_cast<unsigned>(now), dt_ms,
-        static_cast<unsigned long long>(camera_info_delta), Hertz(camera_info_delta, dt_ms),
         static_cast<unsigned long long>(image_raw_delta), Hertz(image_raw_delta, dt_ms),
         static_cast<unsigned long long>(rotation_delta), Hertz(rotation_delta, dt_ms),
         static_cast<unsigned long long>(tracker_target_delta),
@@ -160,7 +153,6 @@ class RuntimeFreqProbe
         static_cast<unsigned long long>(send_delta), Hertz(send_delta, dt_ms));
 
     last_report_ms_ = now;
-    last_camera_info_count_ = camera_info_now;
     last_image_raw_count_ = image_raw_now;
     last_rotation_count_ = rotation_now;
     last_tracker_target_count_ = tracker_target_now;
@@ -196,13 +188,11 @@ class RuntimeFreqProbe
   bool installed_{false};
   bool started_{false};
   LibXR::MillisecondTimestamp last_report_ms_{};
-  std::atomic<uint64_t> camera_info_count_{0};
   std::atomic<uint64_t> image_raw_count_{0};
   std::atomic<uint64_t> rotation_count_{0};
   std::atomic<uint64_t> tracker_target_count_{0};
   std::atomic<uint64_t> target_eulr_count_{0};
   std::atomic<uint64_t> send_count_{0};
-  uint64_t last_camera_info_count_{0};
   uint64_t last_image_raw_count_{0};
   uint64_t last_rotation_count_{0};
   uint64_t last_tracker_target_count_{0};

@@ -5,7 +5,7 @@ constexpr_namespace: ProjectConstexpr
 
 constexprs:
   MainCameraInfo:
-    type: CameraBase::StaticInfo
+    type: CameraBase::CameraInfo
     value:
       width: 800
       height: 600
@@ -103,6 +103,7 @@ modules:
           show_binary: false
           wait_key_ms: 1
           overlay_scale: 0.75
+      camera_info: {constexpr: MainCameraInfo}
   - id: ArmorTracker_0
     name: ArmorTracker
     constructor_args:
@@ -146,6 +147,7 @@ modules:
             - 0.0
             - 0.0
             - 0.0
+      camera_info: {constexpr: MainCameraInfo}
   - id: SharedTopic_Host
     name: SharedTopic
     constructor_args:

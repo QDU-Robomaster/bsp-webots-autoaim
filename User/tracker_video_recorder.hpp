@@ -32,6 +32,7 @@
 #include "libxr.hpp"
 #include "logger.hpp"
 #include "webots_truth_visible_plane.hpp"
+#include "xrobot_constexpr.hpp"
 
 namespace
 {
@@ -47,6 +48,7 @@ class TrackerVideoRecorder
  public:
   TrackerVideoRecorder()
   {
+    camera_info_ = std::make_shared<CameraBase::CameraInfo>(ProjectConstexpr::MainCameraInfo);
     const char* video_env = std::getenv("XR_TRACKER_VIDEO_PATH");
     if (video_env != nullptr && video_env[0] != '\0')
     {
@@ -128,16 +130,6 @@ class TrackerVideoRecorder
 
   void InstallBlocking()
   {
-    auto info_topic = LibXR::Topic(LibXR::Topic::WaitTopic("camera_info", UINT32_MAX));
-    auto info_cb = LibXR::Topic::Callback::Create(
-        [](bool, TrackerVideoRecorder* self, LibXR::RawData& data)
-        {
-          auto* camera_info = reinterpret_cast<CameraBase::CameraInfo*>(data.addr_);
-          self->CameraInfoCallback(camera_info);
-        },
-        this);
-    info_topic.RegisterCallback(info_cb);
-
     auto image_topic = LibXR::Topic(LibXR::Topic::WaitTopic("image_raw", UINT32_MAX));
     auto image_cb = LibXR::Topic::Callback::Create(
         [](bool, TrackerVideoRecorder* self, LibXR::RawData& data)
@@ -709,16 +701,6 @@ class TrackerVideoRecorder
       return nullptr;
     }
     return &candidate_debug->items[candidate_debug->selected_index];
-  }
-
-  void CameraInfoCallback(CameraBase::CameraInfo* camera_info)
-  {
-    if (camera_info == nullptr)
-    {
-      return;
-    }
-    std::lock_guard<std::mutex> lock(state_lock_);
-    camera_info_ = std::make_shared<CameraBase::CameraInfo>(*camera_info);
   }
 
   void ImageCallback(cv::Mat* img_msg)
@@ -2971,8 +2953,11 @@ class TrackerVideoRecorder
     cv::Mat d;
     if (cam.distortion_model == CameraBase::DistortionModel::PLUMB_BOB)
     {
-      const auto& pb = cam.distortion_coefficients.plumb_bob;
-      std::vector<double> dvec = {pb.k1, pb.k2, pb.p1, pb.p2, pb.k3};
+      std::vector<double> dvec = {cam.distortion_coefficients[0],
+                                  cam.distortion_coefficients[1],
+                                  cam.distortion_coefficients[2],
+                                  cam.distortion_coefficients[3],
+                                  cam.distortion_coefficients[4]};
       d = cv::Mat(dvec).clone().reshape(1, 1);
     }
 

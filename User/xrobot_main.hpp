@@ -28,12 +28,14 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static ArmorDetector ArmorDetector_0(
       hw,
       appmgr,
-      {2, {85.0, 48.0, 1.5, 20.0, 8.0, 1.0, 5.0, 1.5, 25.0}, {false, 420, 50, 600, 600, true, 0.5, 0.3, 0.5}, {false, false, 1, 0.75}}
+      {2, {85.0, 48.0, 1.5, 20.0, 8.0, 1.0, 5.0, 1.5, 25.0}, {false, 420, 50, 600, 600, true, 0.5, 0.3, 0.5}, {false, false, 1, 0.75}},
+      ProjectConstexpr::MainCameraInfo
   );
   static ArmorTracker ArmorTracker_0(
       hw,
       appmgr,
-      {{10.0, 10.0}, {0.45, 1.3}, {2, 0.3}, {1e-08, 0, 0.0, 0.0, SolveTrajectory::CalculateMode::NORMAL, {13.0, 0.0, 1.0, -1.0, 0.01, "Modules/ArmorTracker/table.bin"}}, {20.0, 100.0, 800}, {0.05, 0.02}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}}
+      {{10.0, 10.0}, {0.45, 1.3}, {2, 0.3}, {1e-08, 0, 0.0, 0.0, SolveTrajectory::CalculateMode::NORMAL, {13.0, 0.0, 1.0, -1.0, 0.01, "Modules/ArmorTracker/table.bin"}}, {20.0, 100.0, 800}, {0.05, 0.02}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
+      ProjectConstexpr::MainCameraInfo
   );
   static SharedTopic SharedTopic_Host(
       hw,
