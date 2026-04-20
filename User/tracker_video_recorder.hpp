@@ -65,9 +65,7 @@ int SharedFrameCvType(CameraBase::Encoding encoding)
 
 cv::Mat SharedFrameToBgr(const CameraBase::SharedImageFrame& frame)
 {
-  if (frame.width == 0 || frame.height == 0 || frame.step == 0 || frame.data_size == 0 ||
-      frame.data_size > CameraBase::kSharedImageMaxBytes ||
-      static_cast<size_t>(frame.step) * static_cast<size_t>(frame.height) > frame.data_size)
+  if (!CameraBase::SharedImageFrame::HasValidPayload(frame))
   {
     return {};
   }
@@ -296,7 +294,7 @@ class TrackerVideoRecorder
 
     while (!Done())
     {
-      SharedImageTopic::Subscriber subscriber(CameraBase::kSharedImageTopicName);
+      SharedImageTopic::Subscriber subscriber(CameraBase::SharedImageFrame::topic_name);
       if (!subscriber.Valid())
       {
         LibXR::Thread::Sleep(200);

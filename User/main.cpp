@@ -197,7 +197,7 @@ class RuntimeFreqProbe
 
     while (true)
     {
-      SharedImageTopic::Subscriber subscriber(CameraBase::kSharedImageTopicName);
+      SharedImageTopic::Subscriber subscriber(CameraBase::SharedImageFrame::topic_name);
       if (!subscriber.Valid())
       {
         LibXR::Thread::Sleep(200);
