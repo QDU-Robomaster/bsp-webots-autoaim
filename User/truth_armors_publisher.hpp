@@ -48,7 +48,17 @@ class TruthArmorsPublisher
         this);
     info_topic.RegisterCallback(info_cb);
 
-    XR_LOG_PASS("TruthArmorsPublisher subscribed: camera_info -> armor_detector/%s",
+    auto header_topic = LibXR::Topic(LibXR::Topic::WaitTopic("image_header", UINT32_MAX));
+    auto header_cb = LibXR::Topic::Callback::Create(
+        [](bool, TruthArmorsPublisher* self, LibXR::RawData& data)
+        {
+          auto* image_header = reinterpret_cast<CameraBase::ImageHeader*>(data.addr_);
+          self->ImageHeaderCallback(image_header);
+        },
+        this);
+    header_topic.RegisterCallback(header_cb);
+
+    XR_LOG_PASS("TruthArmorsPublisher subscribed: camera_info/image_header -> armor_detector/%s",
                 topic_name_.c_str());
   }
 
@@ -335,7 +345,7 @@ class TruthArmorsPublisher
     const cv::Point2f image_center(static_cast<float>(camera_info.width) * 0.5f,
                                    static_cast<float>(camera_info.height) * 0.5f);
 
-    msg.image_timestamp_us = static_cast<uint64_t>(camera_info.timestamp);
+    msg.image_timestamp_us = latest_image_timestamp_us_;
     msg.results.clear();
     msg.results.reserve(4);
 
@@ -408,6 +418,15 @@ face_ready:
     return true;
   }
 
+  void ImageHeaderCallback(CameraBase::ImageHeader* image_header)
+  {
+    if (image_header == nullptr)
+    {
+      return;
+    }
+    latest_image_timestamp_us_ = static_cast<uint64_t>(image_header->timestamp);
+  }
+
   void CameraInfoCallback(CameraBase::CameraInfo* camera_info)
   {
     if (camera_info == nullptr || supervisor_ == nullptr)
@@ -447,5 +466,6 @@ face_ready:
   std::string topic_name_;
   LibXR::Topic::Domain armor_domain_ = LibXR::Topic::Domain("armor_detector");
   LibXR::Topic armors_topic_;
+  uint64_t latest_image_timestamp_us_{0};
   uint32_t publish_count_{0};
 };
