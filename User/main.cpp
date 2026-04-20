@@ -8,12 +8,14 @@
 #include <sstream>
 #include <webots/Supervisor.hpp>
 
+#include "CameraBase.hpp"
 #include "app_framework.hpp"
 #include "libxr.hpp"
 #include "libxr_def.hpp"
 #include "libxr_pipe.hpp"
 #include "libxr_rw.hpp"
 #include "libxr_system.hpp"
+#include "linux_shared_topic.hpp"
 #include "logger.hpp"
 #include "message.hpp"
 #include "ramfs.hpp"
@@ -78,13 +80,14 @@ namespace
 class RuntimeFreqProbe
 {
  public:
+  using SharedImageTopic = LibXR::LinuxSharedTopic<CameraBase::SharedImageFrame>;
+  static constexpr uint32_t kSharedImageWaitTimeoutMs = 100;
+
   void InstallBlocking()
   {
     LibXR::Topic::Domain gimbal_domain("gimbal");
     LibXR::Topic::Domain tracker_domain("tracker");
 
-    RegisterCounter("image_raw", LibXR::Topic::WaitTopic("image_raw", UINT32_MAX),
-                    image_raw_count_);
     RegisterCounter("gimbal/rotation",
                     LibXR::Topic::WaitTopic("rotation", UINT32_MAX, &gimbal_domain),
                     rotation_count_);
@@ -97,6 +100,10 @@ class RuntimeFreqProbe
     RegisterCounter("tracker/send",
                     LibXR::Topic::WaitTopic("send", UINT32_MAX, &tracker_domain),
                     send_count_);
+
+    image_frame_thread_.Create(this, SharedImageCounterThreadFun, "freq_probe_img",
+                               static_cast<size_t>(1024 * 64),
+                               LibXR::Thread::Priority::LOW);
 
     installed_ = true;
     XR_LOG_PASS("Runtime frequency probe enabled");
@@ -114,7 +121,7 @@ class RuntimeFreqProbe
     {
       started_ = true;
       last_report_ms_ = now;
-      Snapshot(last_image_raw_count_, image_raw_count_);
+      Snapshot(last_image_frame_count_, image_frame_count_);
       Snapshot(last_rotation_count_, rotation_count_);
       Snapshot(last_tracker_target_count_, tracker_target_count_);
       Snapshot(last_target_eulr_count_, target_eulr_count_);
@@ -129,23 +136,23 @@ class RuntimeFreqProbe
       return;
     }
 
-    const uint64_t image_raw_now = image_raw_count_.load(std::memory_order_relaxed);
+    const uint64_t image_frame_now = image_frame_count_.load(std::memory_order_relaxed);
     const uint64_t rotation_now = rotation_count_.load(std::memory_order_relaxed);
     const uint64_t tracker_target_now =
         tracker_target_count_.load(std::memory_order_relaxed);
     const uint64_t target_eulr_now = target_eulr_count_.load(std::memory_order_relaxed);
     const uint64_t send_now = send_count_.load(std::memory_order_relaxed);
 
-    const uint64_t image_raw_delta = image_raw_now - last_image_raw_count_;
+    const uint64_t image_frame_delta = image_frame_now - last_image_frame_count_;
     const uint64_t rotation_delta = rotation_now - last_rotation_count_;
     const uint64_t tracker_target_delta = tracker_target_now - last_tracker_target_count_;
     const uint64_t target_eulr_delta = target_eulr_now - last_target_eulr_count_;
     const uint64_t send_delta = send_now - last_send_count_;
 
     XR_LOG_PASS(
-        "FreqProbe sim_t_ms=%u dt_ms=%u image_raw=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz)",
+        "FreqProbe sim_t_ms=%u dt_ms=%u image_frame=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz)",
         static_cast<unsigned>(now), dt_ms,
-        static_cast<unsigned long long>(image_raw_delta), Hertz(image_raw_delta, dt_ms),
+        static_cast<unsigned long long>(image_frame_delta), Hertz(image_frame_delta, dt_ms),
         static_cast<unsigned long long>(rotation_delta), Hertz(rotation_delta, dt_ms),
         static_cast<unsigned long long>(tracker_target_delta),
         Hertz(tracker_target_delta, dt_ms),
@@ -153,7 +160,7 @@ class RuntimeFreqProbe
         static_cast<unsigned long long>(send_delta), Hertz(send_delta, dt_ms));
 
     last_report_ms_ = now;
-    last_image_raw_count_ = image_raw_now;
+    last_image_frame_count_ = image_frame_now;
     last_rotation_count_ = rotation_now;
     last_tracker_target_count_ = tracker_target_now;
     last_target_eulr_count_ = target_eulr_now;
@@ -184,16 +191,50 @@ class RuntimeFreqProbe
     XR_LOG_PASS("FreqProbe subscribed: %s", label);
   }
 
+  static void SharedImageCounterThreadFun(RuntimeFreqProbe *self)
+  {
+    XR_LOG_PASS("FreqProbe subscribed: image_frame(shared)");
+
+    while (true)
+    {
+      SharedImageTopic::Subscriber subscriber(CameraBase::kSharedImageTopicName);
+      if (!subscriber.Valid())
+      {
+        LibXR::Thread::Sleep(200);
+        continue;
+      }
+
+      SharedImageTopic::Data recv_data;
+      while (true)
+      {
+        const auto wait_ans = subscriber.Wait(recv_data, kSharedImageWaitTimeoutMs);
+        if (wait_ans == LibXR::ErrorCode::TIMEOUT)
+        {
+          continue;
+        }
+        if (wait_ans != LibXR::ErrorCode::OK)
+        {
+          recv_data.Reset();
+          break;
+        }
+
+        self->image_frame_count_.fetch_add(1, std::memory_order_relaxed);
+        recv_data.Reset();
+      }
+    }
+  }
+
  private:
   bool installed_{false};
   bool started_{false};
   LibXR::MillisecondTimestamp last_report_ms_{};
-  std::atomic<uint64_t> image_raw_count_{0};
+  std::atomic<uint64_t> image_frame_count_{0};
   std::atomic<uint64_t> rotation_count_{0};
   std::atomic<uint64_t> tracker_target_count_{0};
   std::atomic<uint64_t> target_eulr_count_{0};
   std::atomic<uint64_t> send_count_{0};
-  uint64_t last_image_raw_count_{0};
+  LibXR::Thread image_frame_thread_{};
+  uint64_t last_image_frame_count_{0};
   uint64_t last_rotation_count_{0};
   uint64_t last_tracker_target_count_{0};
   uint64_t last_target_eulr_count_{0};
@@ -242,10 +283,6 @@ bool TruthArmorsPublisherEnabled()
 void TrackerVideoRecorderThreadFun(void *)
 {
   g_tracker_video_recorder.InstallBlocking();
-  while (!g_tracker_video_recorder.Done())
-  {
-    LibXR::Thread::Sleep(100);
-  }
 }
 
 void TrackerTruthCompareThreadFun(void *)
@@ -260,10 +297,6 @@ void TrackerTruthCompareThreadFun(void *)
 void TruthArmorsPublisherThreadFun(void *)
 {
   g_truth_armors_publisher.InstallBlocking();
-  while (true)
-  {
-    LibXR::Thread::Sleep(1000);
-  }
 }
 }  // namespace
 

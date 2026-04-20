@@ -45,8 +45,7 @@ libxr/     框架与底层组件
 共享视觉主线的数据流是：
 
 1. 输入侧发布
-   - `image_raw`
-   - `image_header`
+   - `image_frame`（`LinuxSharedTopic<CameraBase::SharedImageFrame>`）
    - `camera_pose`
    - `gimbal/rotation`
    - 相机标定由 `User/xrobot.yaml` 中的 `MainCameraInfo` 以编译期常量注入，不再发布 `camera_info` topic

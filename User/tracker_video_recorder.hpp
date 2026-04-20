@@ -30,6 +30,7 @@
 #include "SolveTrajectory.hpp"
 #include "armor.hpp"
 #include "libxr.hpp"
+#include "linux_shared_topic.hpp"
 #include "logger.hpp"
 #include "webots_truth_visible_plane.hpp"
 #include "xrobot_constexpr.hpp"
@@ -40,6 +41,74 @@ const char* ArmorsTopicName()
 {
   const char* env = std::getenv("XR_ARMORS_TOPIC_NAME");
   return (env != nullptr && env[0] != '\0') ? env : "armors_result";
+}
+
+using SharedImageTopic = LibXR::LinuxSharedTopic<CameraBase::SharedImageFrame>;
+constexpr uint32_t kSharedImageWaitTimeoutMs = 100;
+
+int SharedFrameCvType(CameraBase::Encoding encoding)
+{
+  switch (encoding)
+  {
+    case CameraBase::Encoding::RGB8:
+    case CameraBase::Encoding::BGR8:
+      return CV_8UC3;
+    case CameraBase::Encoding::RGBA8:
+    case CameraBase::Encoding::BGRA8:
+      return CV_8UC4;
+    case CameraBase::Encoding::MONO8:
+      return CV_8UC1;
+    default:
+      return -1;
+  }
+}
+
+cv::Mat SharedFrameToBgr(const CameraBase::SharedImageFrame& frame)
+{
+  if (frame.width == 0 || frame.height == 0 || frame.step == 0 || frame.data_size == 0 ||
+      frame.data_size > CameraBase::kSharedImageMaxBytes ||
+      static_cast<size_t>(frame.step) * static_cast<size_t>(frame.height) > frame.data_size)
+  {
+    return {};
+  }
+
+  const int cv_type = SharedFrameCvType(frame.encoding);
+  if (cv_type < 0)
+  {
+    return {};
+  }
+
+  cv::Mat input(static_cast<int>(frame.height), static_cast<int>(frame.width), cv_type,
+                const_cast<uint8_t*>(frame.data.data()), static_cast<size_t>(frame.step));
+  switch (frame.encoding)
+  {
+    case CameraBase::Encoding::RGB8:
+    {
+      cv::Mat output;
+      cv::cvtColor(input, output, cv::COLOR_RGB2BGR);
+      return output;
+    }
+    case CameraBase::Encoding::BGRA8:
+    {
+      cv::Mat output;
+      cv::cvtColor(input, output, cv::COLOR_BGRA2BGR);
+      return output;
+    }
+    case CameraBase::Encoding::RGBA8:
+    {
+      cv::Mat output;
+      cv::cvtColor(input, output, cv::COLOR_RGBA2BGR);
+      return output;
+    }
+    case CameraBase::Encoding::MONO8:
+    {
+      cv::Mat output;
+      cv::cvtColor(input, output, cv::COLOR_GRAY2BGR);
+      return output;
+    }
+    default:
+      return input.clone();
+  }
 }
 }  // namespace
 
@@ -130,16 +199,6 @@ class TrackerVideoRecorder
 
   void InstallBlocking()
   {
-    auto image_topic = LibXR::Topic(LibXR::Topic::WaitTopic("image_raw", UINT32_MAX));
-    auto image_cb = LibXR::Topic::Callback::Create(
-        [](bool, TrackerVideoRecorder* self, LibXR::RawData& data)
-        {
-          auto* image = reinterpret_cast<cv::Mat*>(data.addr_);
-          self->ImageCallback(image);
-        },
-        this);
-    image_topic.RegisterCallback(image_cb);
-
     LibXR::Topic::Domain armor_domain("armor_detector");
     auto armors_topic = LibXR::Topic(
         LibXR::Topic::WaitTopic(ArmorsTopicName(), UINT32_MAX, &armor_domain));
@@ -232,8 +291,40 @@ class TrackerVideoRecorder
     target_topic.RegisterCallback(target_cb);
 
     XR_LOG_PASS(
-        "TrackerVideoRecorder subscribed: image_raw + %s + tracker/* -> %s",
+        "TrackerVideoRecorder subscribed: image_frame(shared) + %s + tracker/* -> %s",
         ArmorsTopicName(), video_path_.c_str());
+
+    while (!Done())
+    {
+      SharedImageTopic::Subscriber subscriber(CameraBase::kSharedImageTopicName);
+      if (!subscriber.Valid())
+      {
+        LibXR::Thread::Sleep(200);
+        continue;
+      }
+
+      SharedImageTopic::Data recv_data;
+      while (!Done())
+      {
+        const auto wait_ans = subscriber.Wait(recv_data, kSharedImageWaitTimeoutMs);
+        if (wait_ans == LibXR::ErrorCode::TIMEOUT)
+        {
+          continue;
+        }
+        if (wait_ans != LibXR::ErrorCode::OK)
+        {
+          recv_data.Reset();
+          break;
+        }
+
+        const CameraBase::SharedImageFrame* frame = recv_data.GetData();
+        if (frame != nullptr)
+        {
+          ImageCallback(*frame);
+        }
+        recv_data.Reset();
+      }
+    }
   }
 
   bool Done() const { return done_.load(std::memory_order_relaxed); }
@@ -550,27 +641,6 @@ class TrackerVideoRecorder
     return track.stable_track_id;
   }
 
-  static cv::Mat ConvertToBgr(const cv::Mat& input)
-  {
-    if (input.type() == CV_8UC3)
-    {
-      return input.clone();
-    }
-    if (input.type() == CV_8UC4)
-    {
-      cv::Mat output;
-      cv::cvtColor(input, output, cv::COLOR_BGRA2BGR);
-      return output;
-    }
-    if (input.type() == CV_8UC1)
-    {
-      cv::Mat output;
-      cv::cvtColor(input, output, cv::COLOR_GRAY2BGR);
-      return output;
-    }
-    return {};
-  }
-
   static const char* AcceptedModeString(uint8_t mode)
   {
     switch (mode)
@@ -703,13 +773,13 @@ class TrackerVideoRecorder
     return &candidate_debug->items[candidate_debug->selected_index];
   }
 
-  void ImageCallback(cv::Mat* img_msg)
+  void ImageCallback(const CameraBase::SharedImageFrame& frame)
   {
-    if (img_msg == nullptr || img_msg->empty() || Done())
+    if (Done())
     {
       return;
     }
-    cv::Mat bgr = ConvertToBgr(*img_msg);
+    cv::Mat bgr = SharedFrameToBgr(frame);
     if (bgr.empty())
     {
       return;

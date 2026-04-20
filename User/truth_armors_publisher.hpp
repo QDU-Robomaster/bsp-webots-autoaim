@@ -22,6 +22,7 @@
 #include "CameraBase.hpp"
 #include "armor.hpp"
 #include "libxr.hpp"
+#include "linux_shared_topic.hpp"
 #include "logger.hpp"
 #include "webots_truth_visible_plane.hpp"
 #include "xrobot_constexpr.hpp"
@@ -29,6 +30,9 @@
 class TruthArmorsPublisher
 {
  public:
+  using SharedImageTopic = LibXR::LinuxSharedTopic<CameraBase::SharedImageFrame>;
+  static constexpr uint32_t kSharedImageWaitTimeoutMs = 100;
+
   TruthArmorsPublisher()
       : topic_name_(ResolveTopicName()),
         armors_topic_(topic_name_.c_str(), sizeof(ArmorDetectionsMessage), &armor_domain_)
@@ -39,18 +43,40 @@ class TruthArmorsPublisher
 
   void InstallBlocking()
   {
-    auto header_topic = LibXR::Topic(LibXR::Topic::WaitTopic("image_header", UINT32_MAX));
-    auto header_cb = LibXR::Topic::Callback::Create(
-        [](bool, TruthArmorsPublisher* self, LibXR::RawData& data)
-        {
-          auto* image_header = reinterpret_cast<CameraBase::ImageHeader*>(data.addr_);
-          self->ImageHeaderCallback(image_header);
-        },
-        this);
-    header_topic.RegisterCallback(header_cb);
-
-    XR_LOG_PASS("TruthArmorsPublisher subscribed: image_header -> armor_detector/%s",
+    XR_LOG_PASS("TruthArmorsPublisher subscribed: image_frame(shared) -> armor_detector/%s",
                 topic_name_.c_str());
+
+    while (true)
+    {
+      SharedImageTopic::Subscriber subscriber(CameraBase::kSharedImageTopicName);
+      if (!subscriber.Valid())
+      {
+        LibXR::Thread::Sleep(200);
+        continue;
+      }
+
+      SharedImageTopic::Data recv_data;
+      while (true)
+      {
+        const auto wait_ans = subscriber.Wait(recv_data, kSharedImageWaitTimeoutMs);
+        if (wait_ans == LibXR::ErrorCode::TIMEOUT)
+        {
+          continue;
+        }
+        if (wait_ans != LibXR::ErrorCode::OK)
+        {
+          recv_data.Reset();
+          break;
+        }
+
+        const CameraBase::SharedImageFrame* frame = recv_data.GetData();
+        if (frame != nullptr)
+        {
+          ImageFrameCallback(*frame);
+        }
+        recv_data.Reset();
+      }
+    }
   }
 
  private:
@@ -409,13 +435,13 @@ face_ready:
     return true;
   }
 
-  void ImageHeaderCallback(CameraBase::ImageHeader* image_header)
+  void ImageFrameCallback(const CameraBase::SharedImageFrame& frame)
   {
-    if (image_header == nullptr || supervisor_ == nullptr)
+    if (supervisor_ == nullptr)
     {
       return;
     }
-    latest_image_timestamp_us_ = static_cast<uint64_t>(image_header->timestamp);
+    latest_image_timestamp_us_ = frame.timestamp_us;
 
     ArmorDetectionsMessage msg;
     {
