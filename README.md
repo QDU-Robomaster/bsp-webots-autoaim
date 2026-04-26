@@ -2,15 +2,12 @@
 
 基于 `libxr` / `xrobot` 的 Webots 仿真自瞄主仓。
 
-当前主线已经统一到共享视觉核心：
-
-- `ArmorDetector`
-- `ArmorTracker`
-- `Aimer`
-
-Webots 主仓只负责把这套共享核心接到仿真输入/执行/通信链：
+当前主仓的职责是把共享视觉模块接到 Webots 世界，并尽量模拟真实硬件的发布/转发边界：
 
 - `WebotsCamera`
+- `CameraFrameSync`
+- `ArmorDetector`
+- `ArmorTracker`
 - `WebotsReferee`
 - `WebotsGimbal`
 - `WebotsFireNotify`
@@ -42,37 +39,30 @@ libxr/     框架与底层组件
 
 ## Core Topic Contract
 
-共享视觉主线的数据流是：
+当前链路按“图像大载荷走共享图像桥，低带宽状态走 SharedTopic”来拆：
 
-1. 输入侧发布
-   - `image_frame`（`LinuxSharedTopic<CameraBase::SharedImageFrame>`）
-   - `camera_pose`
+1. `WebotsCamera`
+   - 每个 world step 发布一组原始 imu 话题：
+     - `camera_gyro`
+     - `camera_accl`
+     - `camera_quat`
+   - 每个图像发布点额外发布一个轻量事件：
+     - `camera_image_event`
+   - 图像 payload 通过 `camera_image` 共享出去
+   - `gimbal/rotation` 仍保留在 `gimbal` domain，兼容现有消费者
+2. `CameraFrameSync`
+   - 以 `gyro` 为主时间线组装 imu
+   - 用 `camera_image_event` 作为图像时间基线
+   - 输出同步后的 `camera_imu`
+3. `ArmorDetector` / `ArmorTracker`
+   - 消费 `camera_image + camera_imu`
+4. 其他仿真侧输入
+   - `referee/bullet_speed`
    - `gimbal/rotation`
-   - 相机标定由 `User/xrobot.yaml` 中的 `MainCameraInfo` 以编译期常量注入，不再发布 `camera_info` topic
-2. `ArmorDetector` 输出
-   - `armor_detector/armors_result`
-   - `armor_detector/metrics`
-3. `ArmorTracker` 输出
-   - `tracker/info`
-   - `tracker/metrics`
-   - `tracker/target`
-4. `Aimer` 输出
-   - `tracker/target_eulr`
-   - `tracker/send`
-   - `aimer/metrics`
-
-Webots 主仓额外接入：
-
-- `referee/bullet_speed`
-  - 由 `WebotsReferee` 提供
-- `gimbal/rotation`
-  - 由 `WebotsCamera` / `WebotsGimbal` 链路提供
-- `tracker/send`
-  - 通过 `SharedTopic` 模拟上位机与下位机通信
 
 ## Communication Model
 
-Webots 主仓保留完整通信模拟链，不是直接把目标角喂给执行器。
+Webots 主仓保留完整通信模拟链，不直接把结果硬塞给执行器。
 
 - Host side
   - `SharedTopic_Host`
@@ -83,23 +73,36 @@ Webots 主仓保留完整通信模拟链，不是直接把目标角喂给执行�
 
 当前转发的核心话题是：
 
-- `bullet_speed`
-- `rotation`
-- `target_eulr`
-- `send`
+- Host -> MCU
+  - `bullet_speed`
+  - `gimbal/rotation`
+  - `camera_sync_config`
+- MCU -> Host
+  - `camera_gyro`
+  - `camera_accl`
+  - `camera_quat`
+  - `camera_image_event`
+  - `tracker/fire_notify`
+  - `tracker/target_eulr`
 
 ## Build
 
 ```bash
 git submodule update --init --recursive
 xrobot_init_mod
-xrobot_gen_main --output User/xrobot_main.hpp
+xrobot_gen_main --output User/xrobot_main.hpp --config User/xrobot.yaml
 cmake -S . -B build -G Ninja
 cmake --build build -j$(nproc)
-make -C webots/controllers/taget_controller
 ```
 
-CI / 基础镜像已经内置 OpenVINO，不需要在主仓 workflow 里手动安装。
+在 `ubuntu24` 上配置时需要先让 CMake 能找到 OpenVINO。当前可用做法是显式导出：
+
+```bash
+export INTEL_OPENVINO_DIR=/home/xiao/toolchains/openvino_2025.4.0_archive
+export OpenVINO_DIR=$INTEL_OPENVINO_DIR/runtime/cmake
+export TBB_DIR=$INTEL_OPENVINO_DIR/runtime/3rdparty/tbb/lib/cmake/TBB
+export LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$INTEL_OPENVINO_DIR/runtime/3rdparty/tbb/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+```
 
 ## Run
 
@@ -122,8 +125,20 @@ QT_QPA_PLATFORM=offscreen
 - `armor_detector.cfg.debug.preview`
 - `armor_tracker.cfg.debug.preview`
 
+如果要快速检查当前发布频率，可在运行 controller 前设置：
+
+```bash
+export XR_FREQ_PROBE=1
+```
+
+当前已经验证过的 Webots 默认频率关系是：
+
+- `camera_gyro / camera_accl / camera_quat = 1000 Hz`
+- `camera_image_event = 100 Hz`
+- `camera_imu = 100 Hz`
+
 ## Notes
 
 - 这个仓库的目标是“仿真 BSP”，不是另起一套视觉算法
-- 当前共享视觉核心已经回到各模块仓库的 `master`
-- 剩余运行期问题主要是 tracker 稳定性，不是装配层或 CI 问题
+- 当前同步链路已经验证 `raw imu : image_event = 10 : 1`
+- `User/xrobot_main.hpp` 是生成文件，不手改
