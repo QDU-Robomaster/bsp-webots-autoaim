@@ -4,9 +4,9 @@ modules:
 - qdu-future/ArmorDetector@feat/tracker-sp-baseline-20260426
 - qdu-future/ArmorTracker@feat/tracker-sp-baseline-20260426
 - qdu-future/Aimer@feat/tracker-sp-baseline-20260426
-- qdu-future/WebotsCamera@feat/camerainfo-staticinfo-cxx20-20260420
+- qdu-future/WebotsCamera@feat/tracker-sp-baseline-20260426
 - xrobot-org/SharedTopicClient
 - xrobot-org/SharedTopic
 - qdu-future/WebotsReferee
-- qdu-future/WebotsGimbal@feat/webots-front-baseline-20260419
+- qdu-future/WebotsGimbal@feat/tracker-sp-baseline-20260426
 - qdu-future/WebotsFireNotify@feat/webots-front-baseline-20260419
