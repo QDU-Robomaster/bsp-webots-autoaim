@@ -4114,8 +4114,7 @@ class TrackerVideoRecorder
     camera_matrix.at<double>(0, 2) *= sx;
     camera_matrix.at<double>(1, 2) *= sy;
 
-    const auto dist = CameraTypes::CameraInfo::ToPnPDistCoeffs(
-        camera_info.distortion_model, camera_info.distortion_coefficients);
+    const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
     cv::Mat dist_coeffs;
     if (!dist.empty())
     {
@@ -4252,8 +4251,7 @@ class TrackerVideoRecorder
     camera_matrix.at<double>(0, 2) *= sx;
     camera_matrix.at<double>(1, 2) *= sy;
 
-    const auto dist = CameraTypes::CameraInfo::ToPnPDistCoeffs(
-        camera_info.distortion_model, camera_info.distortion_coefficients);
+    const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
     cv::Mat dist_coeffs;
     if (!dist.empty())
     {

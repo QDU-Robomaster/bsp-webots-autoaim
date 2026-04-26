@@ -297,9 +297,8 @@ class DetectorTruthCompare
   {
     static const cv::Mat dist_coeffs = []()
     {
-      const auto coeffs = CameraTypes::CameraInfo::ToPnPDistCoeffs(
-          ProjectConstexpr::MainCameraInfo.distortion_model,
-          ProjectConstexpr::MainCameraInfo.distortion_coefficients);
+      const auto coeffs =
+          CameraTypes::BuildPnPDistCoeffs(ProjectConstexpr::MainCameraInfo);
       if (coeffs.empty())
       {
         return cv::Mat();
