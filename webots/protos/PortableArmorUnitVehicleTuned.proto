@@ -81,11 +81,14 @@ PROTO PortableArmorUnitVehicleTuned [
         ]
       }
       Transform {
-        translation -0.045 0.0028003 -0.066
+        translation -0.0404043955 0.0028003 -0.0609129272
         rotation 1 0 0 1.5707996938995747
         children [
+          DEF XR_LEFT_LIGHTBAR_POSE Pose {
+            translation 0.1079043955 0.0601129272 0.0071
+          }
           Transform {
-            scale 0.001 0.001 0.001
+            scale 0.001 0.0009398346 0.001
             translationStep 0.001
             children [
               Shape {
@@ -107,11 +110,14 @@ PROTO PortableArmorUnitVehicleTuned [
         ]
       }
       Transform {
-        translation 0.045 0.0028003 -0.066
+        translation 0.0404043955 0.0028003 -0.0609129272
         rotation 1 0 0 1.5707996938995747
         children [
+          DEF XR_RIGHT_LIGHTBAR_POSE Pose {
+            translation -0.1079043955 0.0601129272 0.0071
+          }
           Transform {
-            scale -0.001 0.001 0.001
+            scale -0.001 0.0009398346 0.001
             translationStep 0.001
             children [
               Shape {

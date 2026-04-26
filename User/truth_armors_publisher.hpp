@@ -19,10 +19,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include "CameraBase.hpp"
+#include "CameraFrameSync.hpp"
 #include "armor.hpp"
 #include "libxr.hpp"
-#include "linux_shared_topic.hpp"
 #include "logger.hpp"
 #include "webots_truth_visible_plane.hpp"
 #include "xrobot_constexpr.hpp"
@@ -30,8 +29,11 @@
 class TruthArmorsPublisher
 {
  public:
-  using SharedImageTopic = LibXR::LinuxSharedTopic<CameraBase::SharedImageFrame>;
-  static constexpr uint32_t kSharedImageWaitTimeoutMs = 100;
+  using CameraInfo = CameraTypes::CameraInfo;
+  using MainFrameSync = CameraFrameSync<ProjectConstexpr::MainCameraInfo>;
+  using ImageFrame = MainFrameSync::ImageFrame;
+  using SyncedFrame = MainFrameSync::SyncedFrame;
+  static constexpr uint32_t kSyncFrameWaitTimeoutMs = 100;
 
   TruthArmorsPublisher()
       : topic_name_(ResolveTopicName()),
@@ -43,38 +45,38 @@ class TruthArmorsPublisher
 
   void InstallBlocking()
   {
-    XR_LOG_PASS("TruthArmorsPublisher subscribed: image_frame(shared) -> armor_detector/%s",
+    XR_LOG_PASS("TruthArmorsPublisher subscribed: image=%s imu=%s -> armor_detector/%s",
+                ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName,
                 topic_name_.c_str());
 
     while (true)
     {
-      SharedImageTopic::Subscriber subscriber(CameraBase::SharedImageFrame::topic_name);
+      MainFrameSync::Subscriber subscriber(ProjectConstexpr::MainImageTopicName,
+                                           ProjectConstexpr::MainImuTopicName);
       if (!subscriber.Valid())
       {
         LibXR::Thread::Sleep(200);
         continue;
       }
 
-      SharedImageTopic::Data recv_data;
+      SyncedFrame synced_frame;
       while (true)
       {
-        const auto wait_ans = subscriber.Wait(recv_data, kSharedImageWaitTimeoutMs);
+        const auto wait_ans = subscriber.Wait(synced_frame, kSyncFrameWaitTimeoutMs);
         if (wait_ans == LibXR::ErrorCode::TIMEOUT)
         {
           continue;
         }
         if (wait_ans != LibXR::ErrorCode::OK)
         {
-          recv_data.Reset();
           break;
         }
 
-        const CameraBase::SharedImageFrame* frame = recv_data.GetData();
+        const ImageFrame* frame = synced_frame.GetImageFrame();
         if (frame != nullptr)
         {
-          ImageFrameCallback(*frame);
+          SyncFrameCallback(*frame);
         }
-        recv_data.Reset();
       }
     }
   }
@@ -89,6 +91,8 @@ class TruthArmorsPublisher
   static constexpr std::array<const char*, 4> kTruthLabels = {
       "armor_front", "armor_right", "armor_back", "armor_left"};
   static constexpr const char* kTruthVisibleFaceProtoDef = "XR_VISIBLE_FACE_POSE";
+  static constexpr const char* kTruthLeftLightbarProtoDef = "XR_LEFT_LIGHTBAR_POSE";
+  static constexpr const char* kTruthRightLightbarProtoDef = "XR_RIGHT_LIGHTBAR_POSE";
 
   static constexpr std::array<std::array<double, 3>, 4> kArmorLocalPosSpin = {
       std::array<double, 3>{0.0, 0.205, -0.06},
@@ -341,13 +345,22 @@ class TruthArmorsPublisher
       {
         visible_face_nodes_[i] = armor_nodes_[i]->getFromProtoDef(kTruthVisibleFaceProtoDef);
       }
+      if (left_lightbar_nodes_[i] == nullptr && armor_nodes_[i]->isProto())
+      {
+        left_lightbar_nodes_[i] = armor_nodes_[i]->getFromProtoDef(kTruthLeftLightbarProtoDef);
+      }
+      if (right_lightbar_nodes_[i] == nullptr && armor_nodes_[i]->isProto())
+      {
+        right_lightbar_nodes_[i] =
+            armor_nodes_[i]->getFromProtoDef(kTruthRightLightbarProtoDef);
+      }
     }
 
     XR_LOG_PASS("TruthArmorsPublisher resolved target/camera/armor nodes");
     return true;
   }
 
-  bool BuildTruthMessage(const CameraBase::CameraInfo& camera_info,
+  bool BuildTruthMessage(const CameraInfo& camera_info,
                          ArmorDetectionsMessage& msg)
   {
     if (!ResolveNodes())
@@ -376,6 +389,37 @@ class TruthArmorsPublisher
       }
 
       WebotsTruthVisibleFace face;
+      if (left_lightbar_nodes_[face_index] != nullptr &&
+          right_lightbar_nodes_[face_index] != nullptr)
+      {
+        Pose3d left_lightbar_in_camera_node;
+        Pose3d right_lightbar_in_camera_node;
+        if (ReadRelativePose(left_lightbar_nodes_[face_index], camera_node_,
+                             left_lightbar_in_camera_node,
+                             left_lightbar_pose_logged_[face_index],
+                             kTruthLeftLightbarProtoDef) &&
+            ReadRelativePose(right_lightbar_nodes_[face_index], camera_node_,
+                             right_lightbar_in_camera_node,
+                             right_lightbar_pose_logged_[face_index],
+                             kTruthRightLightbarProtoDef))
+        {
+          if (ProjectWebotsTruthLightbarCenterlines(
+                  camera_info,
+                  WebotsCameraNodeToOpticalRotation() *
+                      left_lightbar_in_camera_node.rotation,
+                  WebotsCameraNodeToOpticalRotation() *
+                      left_lightbar_in_camera_node.translation,
+                  WebotsCameraNodeToOpticalRotation() *
+                      right_lightbar_in_camera_node.rotation,
+                  WebotsCameraNodeToOpticalRotation() *
+                      right_lightbar_in_camera_node.translation,
+                  face))
+          {
+            goto face_ready;
+          }
+        }
+      }
+
       if (visible_face_nodes_[face_index] != nullptr)
       {
         Pose3d visible_face_in_camera_node;
@@ -435,7 +479,7 @@ face_ready:
     return true;
   }
 
-  void ImageFrameCallback(const CameraBase::SharedImageFrame& frame)
+  void SyncFrameCallback(const ImageFrame& frame)
   {
     if (supervisor_ == nullptr)
     {
@@ -468,9 +512,13 @@ face_ready:
   webots::Node* camera_node_{nullptr};
   std::array<webots::Node*, 4> armor_nodes_{{nullptr, nullptr, nullptr, nullptr}};
   std::array<webots::Node*, 4> visible_face_nodes_{{nullptr, nullptr, nullptr, nullptr}};
+  std::array<webots::Node*, 4> left_lightbar_nodes_{{nullptr, nullptr, nullptr, nullptr}};
+  std::array<webots::Node*, 4> right_lightbar_nodes_{{nullptr, nullptr, nullptr, nullptr}};
   bool target_spin_pose_logged_{false};
   std::array<bool, 4> armor_pose_logged_{{false, false, false, false}};
   std::array<bool, 4> visible_face_pose_logged_{{false, false, false, false}};
+  std::array<bool, 4> left_lightbar_pose_logged_{{false, false, false, false}};
+  std::array<bool, 4> right_lightbar_pose_logged_{{false, false, false, false}};
   std::mutex state_lock_{};
   std::string topic_name_;
   LibXR::Topic::Domain armor_domain_ = LibXR::Topic::Domain("armor_detector");

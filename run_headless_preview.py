@@ -157,6 +157,10 @@ def main() -> int:
                         ctrl_env['LD_LIBRARY_PATH'] = '/usr/local/webots/lib/controller' + (':' + ld if ld else '')
                         ctrl_cmd = ['stdbuf', '-oL', '-eL', str(controller)]
                         log('starting controller: ' + ' '.join(ctrl_cmd) + f' url={controller_url}')
+                        log('controller env: '
+                            f'XR_TRACKER_SP_ENABLE_OUTPUT_MEAS_ANCHOR={ctrl_env.get("XR_TRACKER_SP_ENABLE_OUTPUT_MEAS_ANCHOR", "")} '
+                            f'XR_SOLVER_USE_TARGET_DZ={ctrl_env.get("XR_SOLVER_USE_TARGET_DZ", "")} '
+                            f'XR_WEBOTS_PITCH_SLEW_STEP_RAD={ctrl_env.get("XR_WEBOTS_PITCH_SLEW_STEP_RAD", "")}')
                         controller_proc = subprocess.Popen(
                             ctrl_cmd,
                             cwd=str(run_dir),

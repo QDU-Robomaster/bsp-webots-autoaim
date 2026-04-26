@@ -6,6 +6,7 @@
 #include "WebotsGimbal.hpp"
 #include "WebotsFireNotify.hpp"
 #include "WebotsCamera.hpp"
+#include "CameraFrameSync.hpp"
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
 #include "SharedTopic.hpp"
@@ -23,19 +24,35 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static WebotsCamera<ProjectConstexpr::MainCameraInfo> WebotsCamera_0(
       hw,
       appmgr,
-      {"camera", 100, 0.8, 0.0}
+      {"camera", 100, 0.8, 0.0, "camera", ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName}
   );
-  static ArmorDetector ArmorDetector_0(
+  static CameraFrameSync<
+      ProjectConstexpr::MainCameraInfo
+  > CameraFrameSync_0(
       hw,
       appmgr,
-      {2, {85.0, 48.0, 1.5, 20.0, 8.0, 1.0, 5.0, 1.5, 25.0}, {false, 420, 50, 600, 600, true, 0.5, 0.3, 0.5}, {false, false, 1, 0.75}},
-      ProjectConstexpr::MainCameraInfo
+      WebotsCamera_0
   );
-  static ArmorTracker ArmorTracker_0(
+  static ArmorDetector<ProjectConstexpr::MainCameraInfo> ArmorDetector_0(
       hw,
       appmgr,
-      {{10.0, 10.0}, {0.45, 1.3}, {2, 0.3}, {1e-08, 0, 0.0, 0.0, SolveTrajectory::CalculateMode::NORMAL, {13.0, 0.0, 1.0, -1.0, 0.01, "Modules/ArmorTracker/table.bin"}}, {20.0, 100.0, 800}, {0.05, 0.02}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
-      ProjectConstexpr::MainCameraInfo
+      {2, {85.0, 48.0, 1.5, 20.0, 8.0}, {false, 420, 50, 600, 600, true, 0.5, 0.3, 0.5}, {false, false, 1, 0.75}},
+      CameraFrameSync_0
+  );
+  static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
+      hw,
+      appmgr,
+      ArmorTracker<ProjectConstexpr::MainCameraInfo>::Config{
+          {10.0, 10.0},
+          {0.45, 1.3},
+          {2, 0.3},
+          {1e-08, 0, 0.0, 0.0, SolveTrajectory::CalculateMode::NORMAL,
+           {13.0, 0.0, 1.0, -1.0, 0.01, "Modules/ArmorTracker/table.bin"}},
+          {20.0, 100.0, 800},
+          {0.05, 0.02},
+          {0.205, 0.18, 0.24},
+          {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
+      CameraFrameSync_0
   );
   static SharedTopic SharedTopic_Host(
       hw,
@@ -67,7 +84,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_client",
       8192,
       256,
-      {"bullet_speed", "rotation"}
+      {"bullet_speed", {"rotation", "gimbal"}}
   );
 
   while (true) {

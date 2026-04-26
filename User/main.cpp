@@ -8,14 +8,13 @@
 #include <sstream>
 #include <webots/Supervisor.hpp>
 
-#include "CameraBase.hpp"
+#include "CameraFrameSync.hpp"
 #include "app_framework.hpp"
 #include "libxr.hpp"
 #include "libxr_def.hpp"
 #include "libxr_pipe.hpp"
 #include "libxr_rw.hpp"
 #include "libxr_system.hpp"
-#include "linux_shared_topic.hpp"
 #include "logger.hpp"
 #include "message.hpp"
 #include "ramfs.hpp"
@@ -23,7 +22,10 @@
 #include "thread.hpp"
 #include "uart.hpp"
 #include "xrobot_main.hpp"
+#include "detector_pose_audit.hpp"
+#include "detector_truth_compare.hpp"
 #include "tracker_truth_compare.hpp"
+#include "detector_video_recorder.hpp"
 #include "tracker_video_recorder.hpp"
 #include "truth_armors_publisher.hpp"
 
@@ -77,11 +79,12 @@ void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::RawData &log_data) =
 
 namespace
 {
+using MainFrameSync = CameraFrameSync<ProjectConstexpr::MainCameraInfo>;
+
 class RuntimeFreqProbe
 {
  public:
-  using SharedImageTopic = LibXR::LinuxSharedTopic<CameraBase::SharedImageFrame>;
-  static constexpr uint32_t kSharedImageWaitTimeoutMs = 100;
+  static constexpr uint32_t kSyncFrameWaitTimeoutMs = 100;
 
   void InstallBlocking()
   {
@@ -100,10 +103,16 @@ class RuntimeFreqProbe
     RegisterCounter("tracker/send",
                     LibXR::Topic::WaitTopic("send", UINT32_MAX, &tracker_domain),
                     send_count_);
+    RegisterCounter("mcu/target_eulr",
+                    LibXR::Topic::WaitTopic("target_eulr", UINT32_MAX),
+                    mcu_target_eulr_count_);
+    RegisterCounter("mcu/fire_notify",
+                    LibXR::Topic::WaitTopic("fire_notify", UINT32_MAX),
+                    mcu_fire_notify_count_);
 
-    image_frame_thread_.Create(this, SharedImageCounterThreadFun, "freq_probe_img",
-                               static_cast<size_t>(1024 * 64),
-                               LibXR::Thread::Priority::LOW);
+    sync_frame_thread_.Create(this, SyncFrameCounterThreadFun, "freq_probe_sync",
+                              static_cast<size_t>(1024 * 64),
+                              LibXR::Thread::Priority::LOW);
 
     installed_ = true;
     XR_LOG_PASS("Runtime frequency probe enabled");
@@ -121,11 +130,13 @@ class RuntimeFreqProbe
     {
       started_ = true;
       last_report_ms_ = now;
-      Snapshot(last_image_frame_count_, image_frame_count_);
+      Snapshot(last_sync_frame_count_, sync_frame_count_);
       Snapshot(last_rotation_count_, rotation_count_);
       Snapshot(last_tracker_target_count_, tracker_target_count_);
       Snapshot(last_target_eulr_count_, target_eulr_count_);
       Snapshot(last_send_count_, send_count_);
+      Snapshot(last_mcu_target_eulr_count_, mcu_target_eulr_count_);
+      Snapshot(last_mcu_fire_notify_count_, mcu_fire_notify_count_);
       XR_LOG_PASS("FreqProbe armed at sim_t_ms=%u", static_cast<unsigned>(now));
       return;
     }
@@ -136,35 +147,49 @@ class RuntimeFreqProbe
       return;
     }
 
-    const uint64_t image_frame_now = image_frame_count_.load(std::memory_order_relaxed);
+    const uint64_t sync_frame_now = sync_frame_count_.load(std::memory_order_relaxed);
     const uint64_t rotation_now = rotation_count_.load(std::memory_order_relaxed);
     const uint64_t tracker_target_now =
         tracker_target_count_.load(std::memory_order_relaxed);
     const uint64_t target_eulr_now = target_eulr_count_.load(std::memory_order_relaxed);
     const uint64_t send_now = send_count_.load(std::memory_order_relaxed);
+    const uint64_t mcu_target_eulr_now =
+        mcu_target_eulr_count_.load(std::memory_order_relaxed);
+    const uint64_t mcu_fire_notify_now =
+        mcu_fire_notify_count_.load(std::memory_order_relaxed);
 
-    const uint64_t image_frame_delta = image_frame_now - last_image_frame_count_;
+    const uint64_t sync_frame_delta = sync_frame_now - last_sync_frame_count_;
     const uint64_t rotation_delta = rotation_now - last_rotation_count_;
     const uint64_t tracker_target_delta = tracker_target_now - last_tracker_target_count_;
     const uint64_t target_eulr_delta = target_eulr_now - last_target_eulr_count_;
     const uint64_t send_delta = send_now - last_send_count_;
+    const uint64_t mcu_target_eulr_delta =
+        mcu_target_eulr_now - last_mcu_target_eulr_count_;
+    const uint64_t mcu_fire_notify_delta =
+        mcu_fire_notify_now - last_mcu_fire_notify_count_;
 
     XR_LOG_PASS(
-        "FreqProbe sim_t_ms=%u dt_ms=%u image_frame=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz)",
+        "FreqProbe sim_t_ms=%u dt_ms=%u sync_frame=%llu(%.1fHz) rotation=%llu(%.1fHz) tracker_target=%llu(%.1fHz) target_eulr=%llu(%.1fHz) send=%llu(%.1fHz) mcu_target_eulr=%llu(%.1fHz) mcu_fire_notify=%llu(%.1fHz)",
         static_cast<unsigned>(now), dt_ms,
-        static_cast<unsigned long long>(image_frame_delta), Hertz(image_frame_delta, dt_ms),
+        static_cast<unsigned long long>(sync_frame_delta), Hertz(sync_frame_delta, dt_ms),
         static_cast<unsigned long long>(rotation_delta), Hertz(rotation_delta, dt_ms),
         static_cast<unsigned long long>(tracker_target_delta),
         Hertz(tracker_target_delta, dt_ms),
         static_cast<unsigned long long>(target_eulr_delta), Hertz(target_eulr_delta, dt_ms),
-        static_cast<unsigned long long>(send_delta), Hertz(send_delta, dt_ms));
+        static_cast<unsigned long long>(send_delta), Hertz(send_delta, dt_ms),
+        static_cast<unsigned long long>(mcu_target_eulr_delta),
+        Hertz(mcu_target_eulr_delta, dt_ms),
+        static_cast<unsigned long long>(mcu_fire_notify_delta),
+        Hertz(mcu_fire_notify_delta, dt_ms));
 
     last_report_ms_ = now;
-    last_image_frame_count_ = image_frame_now;
+    last_sync_frame_count_ = sync_frame_now;
     last_rotation_count_ = rotation_now;
     last_tracker_target_count_ = tracker_target_now;
     last_target_eulr_count_ = target_eulr_now;
     last_send_count_ = send_now;
+    last_mcu_target_eulr_count_ = mcu_target_eulr_now;
+    last_mcu_fire_notify_count_ = mcu_fire_notify_now;
   }
 
  private:
@@ -191,35 +216,35 @@ class RuntimeFreqProbe
     XR_LOG_PASS("FreqProbe subscribed: %s", label);
   }
 
-  static void SharedImageCounterThreadFun(RuntimeFreqProbe *self)
+  static void SyncFrameCounterThreadFun(RuntimeFreqProbe *self)
   {
-    XR_LOG_PASS("FreqProbe subscribed: image_frame(shared)");
+    XR_LOG_PASS("FreqProbe subscribed: image=%s imu=%s", ProjectConstexpr::MainImageTopicName,
+                ProjectConstexpr::MainImuTopicName);
 
     while (true)
     {
-      SharedImageTopic::Subscriber subscriber(CameraBase::SharedImageFrame::topic_name);
+      MainFrameSync::Subscriber subscriber(ProjectConstexpr::MainImageTopicName,
+                                           ProjectConstexpr::MainImuTopicName);
       if (!subscriber.Valid())
       {
         LibXR::Thread::Sleep(200);
         continue;
       }
 
-      SharedImageTopic::Data recv_data;
+      MainFrameSync::SyncedFrame synced_frame;
       while (true)
       {
-        const auto wait_ans = subscriber.Wait(recv_data, kSharedImageWaitTimeoutMs);
+        const auto wait_ans = subscriber.Wait(synced_frame, kSyncFrameWaitTimeoutMs);
         if (wait_ans == LibXR::ErrorCode::TIMEOUT)
         {
           continue;
         }
         if (wait_ans != LibXR::ErrorCode::OK)
         {
-          recv_data.Reset();
           break;
         }
 
-        self->image_frame_count_.fetch_add(1, std::memory_order_relaxed);
-        recv_data.Reset();
+        self->sync_frame_count_.fetch_add(1, std::memory_order_relaxed);
       }
     }
   }
@@ -228,21 +253,28 @@ class RuntimeFreqProbe
   bool installed_{false};
   bool started_{false};
   LibXR::MillisecondTimestamp last_report_ms_{};
-  std::atomic<uint64_t> image_frame_count_{0};
+  std::atomic<uint64_t> sync_frame_count_{0};
   std::atomic<uint64_t> rotation_count_{0};
   std::atomic<uint64_t> tracker_target_count_{0};
   std::atomic<uint64_t> target_eulr_count_{0};
   std::atomic<uint64_t> send_count_{0};
-  LibXR::Thread image_frame_thread_{};
-  uint64_t last_image_frame_count_{0};
+  std::atomic<uint64_t> mcu_target_eulr_count_{0};
+  std::atomic<uint64_t> mcu_fire_notify_count_{0};
+  LibXR::Thread sync_frame_thread_{};
+  uint64_t last_sync_frame_count_{0};
   uint64_t last_rotation_count_{0};
   uint64_t last_tracker_target_count_{0};
   uint64_t last_target_eulr_count_{0};
   uint64_t last_send_count_{0};
+  uint64_t last_mcu_target_eulr_count_{0};
+  uint64_t last_mcu_fire_notify_count_{0};
 };
 
 RuntimeFreqProbe g_runtime_freq_probe;
+DetectorPoseAudit g_detector_pose_audit;
+DetectorTruthCompare g_detector_truth_compare;
 TrackerTruthCompare g_tracker_truth_compare;
+DetectorVideoRecorder g_detector_video_recorder;
 TrackerVideoRecorder g_tracker_video_recorder;
 TruthArmorsPublisher g_truth_armors_publisher;
 
@@ -268,9 +300,27 @@ bool TrackerVideoRecorderEnabled()
   return env != nullptr && env[0] != '\0' && env[0] != '0';
 }
 
+bool DetectorVideoRecorderEnabled()
+{
+  const char *env = std::getenv("XR_DETECTOR_VIDEO_RECORDER");
+  return env != nullptr && env[0] != '\0' && env[0] != '0';
+}
+
 bool TrackerTruthCompareEnabled()
 {
   const char *env = std::getenv("XR_TRACKER_TRUTH_COMPARE");
+  return env != nullptr && env[0] != '\0' && env[0] != '0';
+}
+
+bool DetectorTruthCompareEnabled()
+{
+  const char *env = std::getenv("XR_DETECTOR_TRUTH_COMPARE");
+  return env != nullptr && env[0] != '\0' && env[0] != '0';
+}
+
+bool DetectorPoseAuditEnabled()
+{
+  const char *env = std::getenv("XR_DETECTOR_POSE_AUDIT");
   return env != nullptr && env[0] != '\0' && env[0] != '0';
 }
 
@@ -285,10 +335,33 @@ void TrackerVideoRecorderThreadFun(void *)
   g_tracker_video_recorder.InstallBlocking();
 }
 
+void DetectorVideoRecorderThreadFun(void *)
+{
+  g_detector_video_recorder.InstallBlocking();
+}
+
 void TrackerTruthCompareThreadFun(void *)
 {
   g_tracker_truth_compare.InstallBlocking();
   while (!g_tracker_truth_compare.Done())
+  {
+    LibXR::Thread::Sleep(100);
+  }
+}
+
+void DetectorTruthCompareThreadFun(void *)
+{
+  g_detector_truth_compare.InstallBlocking();
+  while (!g_detector_truth_compare.Done())
+  {
+    LibXR::Thread::Sleep(100);
+  }
+}
+
+void DetectorPoseAuditThreadFun(void *)
+{
+  g_detector_pose_audit.InstallBlocking();
+  while (!g_detector_pose_audit.Done())
   {
     LibXR::Thread::Sleep(100);
   }
@@ -327,7 +400,9 @@ int main(int, char **)
     }
   }
   LibXR::PlatformInit(&supervisor, sim_flow_rate);
+  g_detector_truth_compare.Init(&supervisor);
   g_tracker_truth_compare.Init(&supervisor);
+  g_detector_video_recorder.Init(&supervisor);
   g_tracker_video_recorder.Init(&supervisor);
   g_truth_armors_publisher.Init(&supervisor);
 
@@ -372,12 +447,36 @@ int main(int, char **)
                                         LibXR::Thread::Priority::MEDIUM);
   }
 
+  LibXR::Thread detector_video_thread;
+  if (DetectorVideoRecorderEnabled())
+  {
+    detector_video_thread.Create<void *>(nullptr, DetectorVideoRecorderThreadFun,
+                                         "detector_video", 4096,
+                                         LibXR::Thread::Priority::MEDIUM);
+  }
+
   LibXR::Thread tracker_truth_compare_thread;
   if (TrackerTruthCompareEnabled())
   {
     tracker_truth_compare_thread.Create<void *>(nullptr, TrackerTruthCompareThreadFun,
                                                 "tracker_truth_compare", 4096,
                                                 LibXR::Thread::Priority::MEDIUM);
+  }
+
+  LibXR::Thread detector_truth_compare_thread;
+  if (DetectorTruthCompareEnabled())
+  {
+    detector_truth_compare_thread.Create<void *>(nullptr, DetectorTruthCompareThreadFun,
+                                                 "detector_truth_compare", 4096,
+                                                 LibXR::Thread::Priority::MEDIUM);
+  }
+
+  LibXR::Thread detector_pose_audit_thread;
+  if (DetectorPoseAuditEnabled())
+  {
+    detector_pose_audit_thread.Create<void *>(nullptr, DetectorPoseAuditThreadFun,
+                                              "detector_pose_audit", 4096,
+                                              LibXR::Thread::Priority::MEDIUM);
   }
 
   LibXR::Thread truth_armors_publisher_thread;
