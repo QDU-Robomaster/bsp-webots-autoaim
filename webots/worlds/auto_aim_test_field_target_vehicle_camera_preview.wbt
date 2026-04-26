@@ -270,6 +270,13 @@ Robot {
                                               name "preview_display"
                                             }
                                           ]
+                                          boundingObject Box {
+                                            size 0.04 0.04 0.12
+                                          }
+                                          physics Physics {
+                                            density -1
+                                            mass 0.02
+                                          }
                                         }
                                       }
                                     ]
