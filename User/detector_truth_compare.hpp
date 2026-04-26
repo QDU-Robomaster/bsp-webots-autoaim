@@ -299,12 +299,12 @@ class DetectorTruthCompare
     {
       const auto coeffs =
           CameraTypes::BuildPnPDistCoeffs(ProjectConstexpr::MainCameraInfo);
-      if (coeffs.empty())
+      if (coeffs.size == 0)
       {
         return cv::Mat();
       }
-      return cv::Mat(1, static_cast<int>(coeffs.size()), CV_64F,
-                     const_cast<double*>(coeffs.data()))
+      return cv::Mat(1, static_cast<int>(coeffs.size), CV_64F,
+                     const_cast<double*>(coeffs.values.data()))
           .clone();
     }();
     return dist_coeffs;

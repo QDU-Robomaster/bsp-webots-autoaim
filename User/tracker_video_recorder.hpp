@@ -4116,11 +4116,11 @@ class TrackerVideoRecorder
 
     const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
     cv::Mat dist_coeffs;
-    if (!dist.empty())
+    if (dist.size > 0)
     {
       dist_coeffs =
-          cv::Mat(1, static_cast<int>(dist.size()), CV_64F,
-                  const_cast<double*>(dist.data()))
+          cv::Mat(1, static_cast<int>(dist.size), CV_64F,
+                  const_cast<double*>(dist.values.data()))
               .clone();
     }
 
@@ -4253,11 +4253,11 @@ class TrackerVideoRecorder
 
     const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
     cv::Mat dist_coeffs;
-    if (!dist.empty())
+    if (dist.size > 0)
     {
       dist_coeffs =
-          cv::Mat(1, static_cast<int>(dist.size()), CV_64F,
-                  const_cast<double*>(dist.data()))
+          cv::Mat(1, static_cast<int>(dist.size), CV_64F,
+                  const_cast<double*>(dist.values.data()))
               .clone();
     }
 

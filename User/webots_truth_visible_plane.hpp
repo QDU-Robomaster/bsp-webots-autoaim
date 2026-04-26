@@ -85,10 +85,10 @@ inline bool ProjectWebotsTruthFaceBox(const CameraTypes::CameraInfo& camera_info
 
   const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
   cv::Mat dist_coeffs;
-  if (!dist.empty())
+  if (dist.size > 0)
   {
-    dist_coeffs = cv::Mat(1, static_cast<int>(dist.size()), CV_64F,
-                          const_cast<double*>(dist.data()))
+    dist_coeffs = cv::Mat(1, static_cast<int>(dist.size), CV_64F,
+                          const_cast<double*>(dist.values.data()))
                       .clone();
   }
 
@@ -328,10 +328,10 @@ inline bool ProjectWebotsTruthLightbarCenterlines(
   camera_matrix = camera_matrix.clone();
   const auto dist = CameraTypes::BuildPnPDistCoeffs(camera_info);
   cv::Mat dist_coeffs;
-  if (!dist.empty())
+  if (dist.size > 0)
   {
-    dist_coeffs = cv::Mat(1, static_cast<int>(dist.size()), CV_64F,
-                          const_cast<double*>(dist.data()))
+    dist_coeffs = cv::Mat(1, static_cast<int>(dist.size), CV_64F,
+                          const_cast<double*>(dist.values.data()))
                       .clone();
   }
   const cv::Mat zero_rvec = cv::Mat::zeros(3, 1, CV_64F);
