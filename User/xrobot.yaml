@@ -57,6 +57,21 @@ constexprs:
   MainImuTopicName:
     type: const char*
     value: {string: camera_imu}
+  MainGyroTopicName:
+    type: const char*
+    value: {string: camera_gyro}
+  MainAcclTopicName:
+    type: const char*
+    value: {string: camera_accl}
+  MainQuatTopicName:
+    type: const char*
+    value: {string: camera_quat}
+  MainImageEventTopicName:
+    type: const char*
+    value: {string: camera_image_event}
+  MainSyncConfigTopicName:
+    type: const char*
+    value: {string: camera_sync_config}
 
 modules:
   - id: WebotsReferee_0
@@ -178,6 +193,7 @@ modules:
           - referee
         - - rotation
           - gimbal
+        - {constexpr: MainSyncConfigTopicName}
   - id: SharedTopicClient_Host
     name: SharedTopicClient
     constructor_args:
@@ -185,6 +201,10 @@ modules:
       task_stack_depth: 8192
       buffer_size: 256
       topic_names:
+        - {constexpr: MainGyroTopicName}
+        - {constexpr: MainAcclTopicName}
+        - {constexpr: MainQuatTopicName}
+        - {constexpr: MainImageEventTopicName}
         - - fire_notify
           - tracker
         - - target_eulr
@@ -196,6 +216,10 @@ modules:
       task_stack_depth: 8192
       buffer_size: 256
       topic_name:
+        - {constexpr: MainGyroTopicName}
+        - {constexpr: MainAcclTopicName}
+        - {constexpr: MainQuatTopicName}
+        - {constexpr: MainImageEventTopicName}
         - fire_notify
         - target_eulr
   - id: SharedTopicClient_MCU
@@ -206,5 +230,6 @@ modules:
       buffer_size: 256
       topic_names:
         - bullet_speed
+        - {constexpr: MainSyncConfigTopicName}
         - - rotation
           - gimbal

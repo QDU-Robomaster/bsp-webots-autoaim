@@ -1,6 +1,7 @@
 modules:
 - xrobot-org/BlinkLED
-- qdu-future/CameraBase@master
+- qdu-future/CameraBase@feat/camerainfo-staticinfo-cxx20-20260420
+- qdu-future/CameraFrameSync@feat/camera-frame-sync-mode1-20260421
 - qdu-future/ArmorDetector@feat/tracker-sp-baseline-20260426
 - qdu-future/ArmorTracker@feat/tracker-sp-baseline-20260426
 - qdu-future/Aimer@feat/tracker-sp-baseline-20260426
