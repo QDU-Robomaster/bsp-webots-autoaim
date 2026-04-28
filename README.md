@@ -52,7 +52,7 @@ libxr/     框架与底层组件
 2. `CameraFrameSync`
    - 以 `gyro` 为主时间线组装 imu
    - 直接读取已提交图像结构体里的 `timestamp_us` 作为图像时间基线
-   - 直接读取 `gyro/accl/quat` payload 里的 `sensor_timestamp_us`，不使用主机到达时间
+   - 直接读取 `gyro/accl/quat` payload 里的 `sensor_timestamp_us`
    - 输出同步后的 `camera_imu`
 3. `ArmorDetector` / `ArmorTracker`
    - 消费 `camera_image + camera_imu`
