@@ -2,6 +2,7 @@
 import argparse
 import os
 import queue
+import signal
 import subprocess
 import sys
 import threading
@@ -31,9 +32,11 @@ def utc_stamp() -> str:
 
 
 def ensure_symlink(run_dir: Path, repo: Path) -> None:
+    target = repo / 'Modules' / 'ArmorTracker' / 'table.bin'
+    if not target.exists():
+        return
     tracker_dir = run_dir / 'Modules' / 'ArmorTracker'
     tracker_dir.mkdir(parents=True, exist_ok=True)
-    target = repo / 'Modules' / 'ArmorTracker' / 'table.bin'
     link = tracker_dir / 'table.bin'
     if link.exists() or link.is_symlink():
         link.unlink()
@@ -44,11 +47,17 @@ def terminate(proc: subprocess.Popen | None) -> int | None:
     if proc is None:
         return None
     if proc.poll() is None:
-        proc.terminate()
+        try:
+            os.killpg(proc.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
         try:
             return proc.wait(timeout=2)
         except subprocess.TimeoutExpired:
-            proc.kill()
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
             return proc.wait(timeout=5)
     return proc.returncode
 
@@ -106,6 +115,7 @@ def main() -> int:
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        start_new_session=True,
     )
 
     controller_proc = None
@@ -169,6 +179,7 @@ def main() -> int:
                             stderr=subprocess.STDOUT,
                             text=True,
                             bufsize=1,
+                            start_new_session=True,
                         )
                         threads.append(threading.Thread(target=pump, args=('controller', controller_proc, out_q), daemon=True))
                         threads[-1].start()

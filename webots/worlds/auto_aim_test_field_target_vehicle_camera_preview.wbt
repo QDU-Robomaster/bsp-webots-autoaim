@@ -251,6 +251,11 @@ Robot {
                                               rotation 0 1 0 1.5707996938995747
                                               name "camera_accelerometer"
                                             }
+                                            InertialUnit {
+                                              translation 0 0 -0.05
+                                              rotation 0 1 0 1.5707996938995747
+                                              name "camera_inertial_unit"
+                                            }
                                             DEF camera Camera {
                                               translation 0 0 -0.05
                                               rotation 0 1 0 1.5707996938995747

@@ -382,7 +382,7 @@ int main(int, char **)
       sim_flow_rate = parsed;
     }
   }
-  LibXR::PlatformInit(&supervisor, sim_flow_rate);
+  LibXR::PlatformInit(&supervisor, 2, 65536, sim_flow_rate);
   g_detector_truth_compare.Init(&supervisor);
   g_tracker_truth_compare.Init(&supervisor);
   g_detector_video_recorder.Init(&supervisor);
