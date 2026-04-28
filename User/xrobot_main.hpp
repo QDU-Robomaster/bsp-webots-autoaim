@@ -60,7 +60,9 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_host",
       8192,
       256,
-      {{"bullet_speed", "referee"}, {"rotation", "gimbal"}}
+      {{"bullet_speed", "referee"},
+       {"rotation", "gimbal"},
+       ProjectConstexpr::MainSyncConfigTopicName}
   );
   static SharedTopicClient SharedTopicClient_Host(
       hw,
@@ -68,7 +70,11 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_host",
       8192,
       256,
-      {{"fire_notify", "tracker"}, {"target_eulr", "tracker"}}
+      {ProjectConstexpr::MainGyroTopicName,
+       ProjectConstexpr::MainAcclTopicName,
+       ProjectConstexpr::MainQuatTopicName,
+       {"fire_notify", "tracker"},
+       {"target_eulr", "tracker"}}
   );
   static SharedTopic SharedTopic_MCU(
       hw,
@@ -76,7 +82,11 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_client",
       8192,
       256,
-      {"fire_notify", "target_eulr"}
+      {ProjectConstexpr::MainGyroTopicName,
+       ProjectConstexpr::MainAcclTopicName,
+       ProjectConstexpr::MainQuatTopicName,
+       "fire_notify",
+       "target_eulr"}
   );
   static SharedTopicClient SharedTopicClient_MCU(
       hw,
@@ -84,7 +94,9 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_client",
       8192,
       256,
-      {"bullet_speed", {"rotation", "gimbal"}}
+      {"bullet_speed",
+       ProjectConstexpr::MainSyncConfigTopicName,
+       {"rotation", "gimbal"}}
   );
 
   while (true) {

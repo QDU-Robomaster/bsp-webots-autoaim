@@ -98,10 +98,6 @@ class RuntimeFreqProbe
     RegisterCounter(ProjectConstexpr::MainQuatTopicName,
                     LibXR::Topic::WaitTopic(ProjectConstexpr::MainQuatTopicName, UINT32_MAX),
                     quat_count_);
-    RegisterCounter(
-        ProjectConstexpr::MainImageEventTopicName,
-        LibXR::Topic::WaitTopic(ProjectConstexpr::MainImageEventTopicName, UINT32_MAX),
-        image_event_count_);
     RegisterCounter(ProjectConstexpr::MainImuTopicName,
                     LibXR::Topic::WaitTopic(ProjectConstexpr::MainImuTopicName, UINT32_MAX),
                     synced_imu_count_);
@@ -130,7 +126,6 @@ class RuntimeFreqProbe
       Snapshot(last_gyro_count_, gyro_count_);
       Snapshot(last_accl_count_, accl_count_);
       Snapshot(last_quat_count_, quat_count_);
-      Snapshot(last_image_event_count_, image_event_count_);
       Snapshot(last_synced_imu_count_, synced_imu_count_);
       XR_LOG_PASS("FreqProbe armed at sim_t_ms=%u", static_cast<unsigned>(now));
       return;
@@ -146,24 +141,20 @@ class RuntimeFreqProbe
     const uint64_t gyro_now = gyro_count_.load(std::memory_order_relaxed);
     const uint64_t accl_now = accl_count_.load(std::memory_order_relaxed);
     const uint64_t quat_now = quat_count_.load(std::memory_order_relaxed);
-    const uint64_t image_event_now = image_event_count_.load(std::memory_order_relaxed);
     const uint64_t synced_imu_now = synced_imu_count_.load(std::memory_order_relaxed);
 
     const uint64_t sync_frame_delta = sync_frame_now - last_sync_frame_count_;
     const uint64_t gyro_delta = gyro_now - last_gyro_count_;
     const uint64_t accl_delta = accl_now - last_accl_count_;
     const uint64_t quat_delta = quat_now - last_quat_count_;
-    const uint64_t image_event_delta = image_event_now - last_image_event_count_;
     const uint64_t synced_imu_delta = synced_imu_now - last_synced_imu_count_;
 
     XR_LOG_PASS(
-        "FreqProbe sim_t_ms=%u dt_ms=%u gyro=%llu(%.1fHz) accl=%llu(%.1fHz) quat=%llu(%.1fHz) image_event=%llu(%.1fHz) synced_imu=%llu(%.1fHz) sync_frame=%llu(%.1fHz)",
+        "FreqProbe sim_t_ms=%u dt_ms=%u gyro=%llu(%.1fHz) accl=%llu(%.1fHz) quat=%llu(%.1fHz) synced_imu=%llu(%.1fHz) sync_frame=%llu(%.1fHz)",
         static_cast<unsigned>(now), dt_ms,
         static_cast<unsigned long long>(gyro_delta), Hertz(gyro_delta, dt_ms),
         static_cast<unsigned long long>(accl_delta), Hertz(accl_delta, dt_ms),
         static_cast<unsigned long long>(quat_delta), Hertz(quat_delta, dt_ms),
-        static_cast<unsigned long long>(image_event_delta),
-        Hertz(image_event_delta, dt_ms),
         static_cast<unsigned long long>(synced_imu_delta),
         Hertz(synced_imu_delta, dt_ms),
         static_cast<unsigned long long>(sync_frame_delta), Hertz(sync_frame_delta, dt_ms));
@@ -173,7 +164,6 @@ class RuntimeFreqProbe
     last_gyro_count_ = gyro_now;
     last_accl_count_ = accl_now;
     last_quat_count_ = quat_now;
-    last_image_event_count_ = image_event_now;
     last_synced_imu_count_ = synced_imu_now;
   }
 
@@ -242,14 +232,12 @@ class RuntimeFreqProbe
   std::atomic<uint64_t> gyro_count_{0};
   std::atomic<uint64_t> accl_count_{0};
   std::atomic<uint64_t> quat_count_{0};
-  std::atomic<uint64_t> image_event_count_{0};
   std::atomic<uint64_t> synced_imu_count_{0};
   LibXR::Thread sync_frame_thread_{};
   uint64_t last_sync_frame_count_{0};
   uint64_t last_gyro_count_{0};
   uint64_t last_accl_count_{0};
   uint64_t last_quat_count_{0};
-  uint64_t last_image_event_count_{0};
   uint64_t last_synced_imu_count_{0};
 };
 
@@ -363,7 +351,7 @@ class UartBridge : public LibXR::UART
       : UART(read_port, write_port)
   {
   }
-  ErrorCode SetConfig(LibXR::UART::Configuration) override
+  LibXR::ErrorCode SetConfig(LibXR::UART::Configuration) override
   {
     return LibXR::ErrorCode::NOT_SUPPORT;
   }

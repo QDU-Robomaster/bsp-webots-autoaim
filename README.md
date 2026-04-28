@@ -46,13 +46,13 @@ libxr/     框架与底层组件
      - `camera_gyro`
      - `camera_accl`
      - `camera_quat`
-   - 每个图像发布点额外发布一个轻量事件：
-     - `camera_image_event`
-   - 图像 payload 通过 `camera_image` 共享出去
+   - 图像写入 `CameraBase::ImageFrame`，其中 `timestamp_us` 是传感器侧时间
+   - 图像 payload 由 `CameraFrameSync` 的图像 sink 提交到 `camera_image`
    - `gimbal/rotation` 仍保留在 `gimbal` domain，兼容现有消费者
 2. `CameraFrameSync`
    - 以 `gyro` 为主时间线组装 imu
-   - 用 `camera_image_event` 作为图像时间基线
+   - 直接读取已提交图像结构体里的 `timestamp_us` 作为图像时间基线
+   - 直接读取 `gyro/accl/quat` payload 里的 `sensor_timestamp_us`，不使用主机到达时间
    - 输出同步后的 `camera_imu`
 3. `ArmorDetector` / `ArmorTracker`
    - 消费 `camera_image + camera_imu`
@@ -81,7 +81,6 @@ Webots 主仓保留完整通信模拟链，不直接把结果硬塞给执行器�
   - `camera_gyro`
   - `camera_accl`
   - `camera_quat`
-  - `camera_image_event`
   - `tracker/fire_notify`
   - `tracker/target_eulr`
 
@@ -134,11 +133,11 @@ export XR_FREQ_PROBE=1
 当前已经验证过的 Webots 默认频率关系是：
 
 - `camera_gyro / camera_accl / camera_quat = 1000 Hz`
-- `camera_image_event = 100 Hz`
+- `camera_image / sync_frame = 100 Hz`
 - `camera_imu = 100 Hz`
 
 ## Notes
 
 - 这个仓库的目标是“仿真 BSP”，不是另起一套视觉算法
-- 当前同步链路已经验证 `raw imu : image_event = 10 : 1`
+- 当前同步链路已经验证 `raw imu : image = 10 : 1`
 - `User/xrobot_main.hpp` 是生成文件，不手改

@@ -66,9 +66,6 @@ constexprs:
   MainQuatTopicName:
     type: const char*
     value: {string: camera_quat}
-  MainImageEventTopicName:
-    type: const char*
-    value: {string: camera_image_event}
   MainSyncConfigTopicName:
     type: const char*
     value: {string: camera_sync_config}
@@ -204,7 +201,6 @@ modules:
         - {constexpr: MainGyroTopicName}
         - {constexpr: MainAcclTopicName}
         - {constexpr: MainQuatTopicName}
-        - {constexpr: MainImageEventTopicName}
         - - fire_notify
           - tracker
         - - target_eulr
@@ -219,7 +215,6 @@ modules:
         - {constexpr: MainGyroTopicName}
         - {constexpr: MainAcclTopicName}
         - {constexpr: MainQuatTopicName}
-        - {constexpr: MainImageEventTopicName}
         - fire_notify
         - target_eulr
   - id: SharedTopicClient_MCU

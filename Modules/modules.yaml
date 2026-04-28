@@ -1,11 +1,11 @@
 modules:
 - xrobot-org/BlinkLED
-- qdu-future/CameraBase@feat/camerabase-raw-imu-sync-20260426
-- qdu-future/CameraFrameSync@feat/camera-frame-sync-mode1-20260421
+- qdu-future/CameraBase
+- qdu-future/CameraFrameSync@codex/cameraframesync-final-cleanup-20260428
 - qdu-future/ArmorDetector@feat/tracker-sp-baseline-20260426
 - qdu-future/ArmorTracker@feat/tracker-sp-baseline-20260426
 - qdu-future/Aimer@feat/tracker-sp-baseline-20260426
-- qdu-future/WebotsCamera@feat/webots-real-imu-20260426
+- qdu-future/WebotsCamera@feat/webotscamera-lifetime-cleanup-20260427
 - xrobot-org/SharedTopicClient
 - xrobot-org/SharedTopic
 - qdu-future/WebotsReferee
