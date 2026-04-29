@@ -60,6 +60,12 @@ libxr/     框架与底层组件
    - `referee/bullet_speed`
    - `gimbal/rotation`
 
+## 坐标系边界
+
+`ArmorDetector` 的 PnP 位姿来自 OpenCV 光学相机坐标：`x` 向右、`y` 向下、`z` 向前。`WebotsCamera` / IMU 对外发布的姿态语义是：`x` 向右、`y` 向前、`z` 向上。
+
+因此 `ArmorTracker.cfg.frames.rotation` 必须保留为 `wxyz = [0.5, -0.5, 0.5, -0.5]`，用于把 detector 输出转到 tracker/IMU 发布坐标。不能改成 identity；否则 tracker 会把光学坐标的 `x/y` 当作整车旋转平面，导致半径塌缩和装甲板固定偏移。
+
 ## Communication Model
 
 Webots 主仓保留完整通信模拟链，不直接把结果硬塞给执行器。
@@ -76,7 +82,7 @@ Webots 主仓保留完整通信模拟链，不直接把结果硬塞给执行器�
 - Host -> MCU
   - `bullet_speed`
   - `gimbal/rotation`
-  - `camera_sync_config`
+  - `sensor_sync_cmd`
 - MCU -> Host
   - `camera_gyro`
   - `camera_accl`

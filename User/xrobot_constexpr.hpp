@@ -7,5 +7,5 @@ inline constexpr const char* MainImuTopicName = "camera_imu";
 inline constexpr const char* MainGyroTopicName = "camera_gyro";
 inline constexpr const char* MainAcclTopicName = "camera_accl";
 inline constexpr const char* MainQuatTopicName = "camera_quat";
-inline constexpr const char* MainSyncConfigTopicName = "camera_sync_config";
+inline constexpr const char* MainSyncConfigTopicName = "sensor_sync_cmd";
 }  // namespace ProjectConstexpr

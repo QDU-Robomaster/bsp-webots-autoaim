@@ -68,7 +68,7 @@ constexprs:
     value: {string: camera_quat}
   MainSyncConfigTopicName:
     type: const char*
-    value: {string: camera_sync_config}
+    value: {string: sensor_sync_cmd}
 
 modules:
   - id: WebotsReferee_0
@@ -161,13 +161,13 @@ modules:
           sigma2_q_xyz: 20.0
           sigma2_q_yaw: 100.0
           sigma2_q_r: 800
-        noise:
-          r_xyz_factor: 0.05
-          r_yaw: 0.02
         geometry:
           initial_radius: 0.205
           min_radius: 0.18
           max_radius: 0.24
+        noise:
+          r_xyz_factor: 0.05
+          r_yaw: 0.02
         frames:
           rotation:
             - 0.5

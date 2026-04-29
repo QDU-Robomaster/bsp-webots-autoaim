@@ -49,8 +49,8 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
           {1e-08, 0, 0.0, 0.0, SolveTrajectory::CalculateMode::NORMAL,
            {13.0, 0.0, 1.0, -1.0, 0.01, "Modules/ArmorTracker/table.bin"}},
           {20.0, 100.0, 800},
-          {0.05, 0.02},
           {0.205, 0.18, 0.24},
+          {0.05, 0.02},
           {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
       CameraFrameSync_0
   );
