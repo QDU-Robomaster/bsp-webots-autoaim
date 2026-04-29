@@ -43,7 +43,7 @@ void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::RawData &log_data) =
       oss << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".log";
       f.open(oss.str(), std::ios::out | std::ios::app);
 
-      LibXR::STDIO::Printf("Log written to %s\n", oss.str().c_str());
+      LibXR::STDIO::Printf<"Log written to %s\n">(oss.str().c_str());
     }
 
     if (f)
@@ -56,7 +56,7 @@ void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::RawData &log_data) =
       std::tm tm2{};
       localtime_r(&t2, &tm2);
       char ts[32];
-      (void)std::strftime(ts, sizeof(ts), "%F %T", &tm2);  // "YYYY-MM-DD HH:MM:SS"
+      (void)std::strftime(ts, sizeof(ts), "%F %T", &tm2);
 
       f << '[' << ts << '.' << std::setw(3) << std::setfill('0') << ms.count()
         << std::setfill(' ') << "][" << static_cast<unsigned>(log->level) << "] "
@@ -74,7 +74,7 @@ class UartBridge : public LibXR::UART
       : UART(read_port, write_port)
   {
   }
-  ErrorCode SetConfig(LibXR::UART::Configuration) override
+  LibXR::ErrorCode SetConfig(LibXR::UART::Configuration) override
   {
     return LibXR::ErrorCode::NOT_SUPPORT;
   }
@@ -90,11 +90,9 @@ int main(int, char **)
   LibXR::Pipe pipe_host_tx(1024), pipe_host_rx(1024);
 
   UartBridge uart_host(&pipe_host_rx.GetReadPort(), &pipe_host_tx.GetWritePort());
-
   UartBridge uart_client(&pipe_host_tx.GetReadPort(), &pipe_host_rx.GetWritePort());
 
   LibXR::RamFS ramfs;
-
   LibXR::Terminal<1024, 64, 16, 128> terminal(ramfs);
 
   LibXR::Thread term_thread;
@@ -113,7 +111,7 @@ int main(int, char **)
 
   XRobotMain(peripherals);
 
-  while (1)
+  while (true)
   {
     LibXR::Thread::Sleep(1000);
   }

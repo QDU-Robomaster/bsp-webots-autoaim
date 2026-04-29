@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(rm_auto_aim)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## 强制启用警告
@@ -25,8 +25,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # libxr
 set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 set(WEBOTS_HOME /usr/local/webots)
-set(LIBXR_LOG_OUTPUT_LEVEL 2)
+set(LIBXR_LOG_OUTPUT_LEVEL 3)
 add_subdirectory(libxr)
+set_property(TARGET xr PROPERTY CXX_STANDARD 20)
+set_property(TARGET xr PROPERTY CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME} User/main.cpp)
 
