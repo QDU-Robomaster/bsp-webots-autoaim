@@ -6,7 +6,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
 
 WorldInfo {
-  basicTimeStep 8
+  basicTimeStep 1
 }
 Viewpoint {
   orientation -0.23040265090737777 0.008499950748451371 0.9730582558573391 3.0698278785586064
@@ -241,6 +241,21 @@ Robot {
                                               ]
                                               gradual TRUE
                                             }
+                                            Gyro {
+                                              translation 0 0 -0.05
+                                              rotation 0 1 0 1.5707996938995747
+                                              name "camera_gyro"
+                                            }
+                                            Accelerometer {
+                                              translation 0 0 -0.05
+                                              rotation 0 1 0 1.5707996938995747
+                                              name "camera_accelerometer"
+                                            }
+                                            InertialUnit {
+                                              translation 0 0 -0.05
+                                              rotation 0 1 0 1.5707996938995747
+                                              name "camera_inertial_unit"
+                                            }
                                             DEF camera Camera {
                                               translation 0 0 -0.05
                                               rotation 0 1 0 1.5707996938995747
@@ -260,12 +275,33 @@ Robot {
                                               name "preview_display"
                                             }
                                           ]
+                                          boundingObject Box {
+                                            size 0.04 0.04 0.12
+                                          }
+                                          physics Physics {
+                                            density -1
+                                            mass 0.02
+                                          }
                                         }
                                       }
                                     ]
+                                    boundingObject Sphere {
+                                      radius 0.001
+                                    }
+                                    physics Physics {
+                                      density -1
+                                      mass 0.01
+                                    }
                                   }
                                 }
                               ]
+                              boundingObject Sphere {
+                                radius 0.001
+                              }
+                              physics Physics {
+                                density -1
+                                mass 0.01
+                              }
                             }
                           }
                           Shape {
@@ -277,6 +313,13 @@ Robot {
                             }
                           }
                         ]
+                        boundingObject Sphere {
+                          radius 0.001
+                        }
+                        physics Physics {
+                          density -1
+                          mass 0.01
+                        }
                       }
                     }
                     Shape {
@@ -288,6 +331,13 @@ Robot {
                       }
                     }
                   ]
+                  boundingObject Sphere {
+                    radius 0.001
+                  }
+                  physics Physics {
+                    density -1
+                    mass 0.01
+                  }
                 }
               }
               Shape {
@@ -299,6 +349,13 @@ Robot {
                 }
               }
             ]
+            boundingObject Sphere {
+              radius 0.001
+            }
+            physics Physics {
+              density -1
+              mass 0.01
+            }
           }
         }
         Shape {

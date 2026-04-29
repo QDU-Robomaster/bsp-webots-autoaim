@@ -1,127 +1,111 @@
 # BSP Webots AutoAim
 
-基于 `libxr` / `xrobot` 的 Webots 仿真自瞄主仓。
+基于 `libxr` / `xrobot` 的 Webots 仿真自瞄主仓。当前收口目标是先把视觉链路稳定跑到 `ArmorTracker`，暂不接入 `Aimer` 和云台闭环控制。
 
-当前主线已经统一到共享视觉核心：
+## 当前链路
 
-- `ArmorDetector`
-- `ArmorTracker`
-- `Aimer`
+```text
+WebotsCamera -> CameraFrameSync -> ArmorDetector -> ArmorTracker
+```
 
-Webots 主仓只负责把这套共享核心接到仿真输入/执行/通信链：
+- `WebotsCamera` 从 Webots 世界读取相机图像和真实传感器节点。
+- Webots 世界 `basicTimeStep = 1 ms`。
+- IMU 每个 world step 发布，图像按 `100 Hz` 发布。
+- `CameraFrameSync` 消费同一相机的图像和 IMU，输出 `camera_imu`。
+- `ArmorDetector` / `ArmorTracker` 均消费同步后的相机/IMU 数据。
 
-- `WebotsCamera`
-- `WebotsReferee`
-- `WebotsGimbal`
-- `WebotsFireNotify`
-- `SharedTopic`
-- `SharedTopicClient`
+## 坐标系边界
 
-## Role
+`ArmorDetector` 的 PnP 位姿来自 OpenCV 光学相机坐标：
 
-- `rm_auto_aim`
-  - Webots extern controller 入口
+- `x` 向右
+- `y` 向下
+- `z` 向前
 
-## Layout
+`WebotsCamera` / IMU 对外发布的姿态语义是：
+
+- `x` 向右
+- `y` 向前
+- `z` 向上
+
+因此 `ArmorTracker.cfg.frames.rotation` 必须保留为：
+
+```text
+wxyz = [0.5, -0.5, 0.5, -0.5]
+```
+
+这个旋转把 detector 输出转到 tracker/IMU 发布坐标。不能改成 identity；否则 tracker 会把光学坐标的 `x/y` 当作整车旋转平面，导致半径塌缩和装甲板固定偏移。
+
+## 目录
 
 ```text
 Modules/   模块依赖清单
-User/      xrobot 装配配置与生成入口
-webots/    world、controller、资源文件
+User/      xrobot 装配配置、生成入口和验证辅助工具
+webots/    world、proto、资源文件
 libxr/     框架与底层组件
 ```
 
-## Assembly
+## 装配源
 
 - `Modules/modules.yaml`
-  - 决定需要拉取哪些模块仓库
+  - 只列当前 tracker 验证链路需要的模块。
 - `User/xrobot.yaml`
-  - Webots 主装配配置
+  - Webots 主装配配置源。
 - `User/xrobot_main.hpp`
-  - 由 `xrobot_gen_main` 生成，不手改
+  - 由 `xrobot_gen_main` 生成，不手改。
 
-## Core Topic Contract
+## 话题
 
-共享视觉主线的数据流是：
+- 图像：
+  - `camera_image`
+- 原始传感器：
+  - `camera_gyro`
+  - `camera_accl`
+  - `camera_quat`
+- 同步后 IMU：
+  - `camera_imu`
 
-1. 输入侧发布
-   - `image_raw`
-   - `camera_info`
-2. `ArmorDetector` 输出
-   - `armor_detector/armors_result`
-   - `armor_detector/metrics`
-3. `ArmorTracker` 输出
-   - `tracker/info`
-   - `tracker/metrics`
-   - `tracker/target`
-4. `Aimer` 输出
-   - `tracker/target_eulr`
-   - `tracker/send`
-   - `aimer/metrics`
+当前分支不接 `SharedTopic` / `Aimer` / `WebotsGimbal` 闭环。后续接入下游控制时，应在这个稳定的相机同步基线之上继续扩展，而不是改变相机/IMU 的时间与坐标语义。
 
-Webots 主仓额外接入：
-
-- `referee/bullet_speed`
-  - 由 `WebotsReferee` 提供
-- `gimbal/rotation`
-  - 由 `WebotsCamera` / `WebotsGimbal` 链路提供
-- `tracker/send`
-  - 通过 `SharedTopic` 模拟上位机与下位机通信
-
-## Communication Model
-
-Webots 主仓保留完整通信模拟链，不是直接把目标角喂给执行器。
-
-- Host side
-  - `SharedTopic_Host`
-  - `SharedTopicClient_Host`
-- MCU side
-  - `SharedTopic_MCU`
-  - `SharedTopicClient_MCU`
-
-当前转发的核心话题是：
-
-- `bullet_speed`
-- `rotation`
-- `target_eulr`
-- `send`
-
-## Build
+## 构建
 
 ```bash
 git submodule update --init --recursive
 xrobot_init_mod
-xrobot_gen_main --output User/xrobot_main.hpp
+xrobot_gen_main --output User/xrobot_main.hpp --config User/xrobot.yaml
 cmake -S . -B build -G Ninja
 cmake --build build -j$(nproc)
-make -C webots/controllers/taget_controller
 ```
 
-CI / 基础镜像已经内置 OpenVINO，不需要在主仓 workflow 里手动安装。
-
-## Run
-
-有屏幕时直接运行 Webots world 即可；无头环境通常需要：
+在 `ubuntu24` 上配置时需要让 CMake 能找到 OpenVINO。当前可用做法：
 
 ```bash
-xvfb-run -a webots --stdout --stderr --batch --mode=fast webots/worlds/auto_aim_test_field.wbt
+export INTEL_OPENVINO_DIR=/home/xiao/toolchains/openvino_2025.4.0_archive
+export OpenVINO_DIR=$INTEL_OPENVINO_DIR/runtime/cmake
+export TBB_DIR=$INTEL_OPENVINO_DIR/runtime/3rdparty/tbb/lib/cmake/TBB
+export LD_LIBRARY_PATH=$INTEL_OPENVINO_DIR/runtime/lib/intel64:$INTEL_OPENVINO_DIR/runtime/3rdparty/tbb/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 ```
 
-extern controller 运行时还需要：
+## 运行
+
+有屏幕时直接运行 Webots world。extern controller 运行时还需要：
 
 ```bash
 QT_QPA_PLATFORM=offscreen
 ```
 
-## Preview
+## 验证边界
 
-预览统一只由 YAML 控制，不走 CMake 开关。
+当前分支只保留主运行链路；视频录制、truth compare 等验证工具作为临时 overlay 使用，不进主线。
 
-- `armor_detector.cfg.debug.preview`
-- `armor_tracker.cfg.debug.preview`
+已验证的默认频率关系：
 
-## Notes
+- `camera_gyro / camera_accl / camera_quat = 1000 Hz`
+- `camera_image = 100 Hz`
+- `camera_imu = 100 Hz`
 
-- 这个仓库的目标是“仿真 BSP”，不是另起一套视觉算法
-- 当前共享视觉核心已经回到各模块仓库的 `master`
-- 剩余运行期问题主要是 tracker 稳定性，不是装配层或 CI 问题
+## 注意
+
+- 这个仓库的目标是 Webots BSP，不另起一套视觉算法。
+- 当前主线只声明到 tracker 为止的稳定基线。
+- `Aimer` 和执行器闭环不在当前合并范围内。
