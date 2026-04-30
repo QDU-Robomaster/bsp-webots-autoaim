@@ -110,11 +110,6 @@ modules:
           score_threshold: 0.5
           nms_threshold: 0.3
           min_confidence: 0.5
-        debug:
-          preview: false
-          show_binary: false
-          wait_key_ms: 1
-          overlay_scale: 0.75
       sync: '@CameraFrameSync_0'
   - id: ArmorTracker_0
     name: ArmorTracker
@@ -136,7 +131,7 @@ modules:
           bias_time: 100
           s_bias: 0.19133
           z_bias: 0.21265
-          calculate_mode: {expr: SolveTrajectory::CalculateMode::NORMAL}
+          calculate_mode: {expr: SolveTrajectory::NORMAL}
           table_config:
             max_x: 13.0
             min_x: 0.0
