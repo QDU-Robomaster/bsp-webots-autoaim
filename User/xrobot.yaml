@@ -150,11 +150,11 @@ modules:
         noise:
           r_xyz_factor: 0.05
           r_yaw: 0.02
+        frames:
+          rotation: [0.5, -0.5, 0.5, -0.5]
+          translation: [0.0, 0.0, 0.0]
         sp:
           enable_pair_dz: true
           measurement_recenter_alpha: 0.05
           quality_recenter: true
-        frames:
-          rotation: [0.5, -0.5, 0.5, -0.5]
-          translation: [0.0, 0.0, 0.0]
       sync: '@CameraFrameSync_0'
