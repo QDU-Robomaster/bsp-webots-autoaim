@@ -34,7 +34,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
       hw,
       appmgr,
-      {{30.0, 30.0}, {0.15, 1.0}, {5, 0.3}, {0.092, 100, 0.19133, 0.21265, SolveTrajectory::NORMAL, {13.0, 0.0, 1.0, -1.0, 0.01, "table.bin"}}, {20.0, 100.0, 800.0}, {0.26, 0.12, 0.4}, {0.05, 0.02}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
+      {{30.0, 30.0}, {0.15, 1.0}, {5, 0.3}, {0.092, 100, 0.19133, 0.21265, SolveTrajectory::NORMAL, {13.0, 0.0, 1.0, -1.0, 0.01, "table.bin"}}, {20.0, 100.0, 800.0}, {0.26, 0.12, 0.4}, {0.05, 0.02}, {true, 0.05, true}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}},
       CameraFrameSync_0
   );
 
