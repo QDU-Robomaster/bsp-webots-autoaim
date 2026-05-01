@@ -68,6 +68,16 @@ constexprs:
     value: {string: camera_quat}
 
 modules:
+  - id: WebotsReferee_0
+    name: WebotsReferee
+    constructor_args:
+      bullet_speed: 23.0
+  - id: WebotsGimbal_0
+    name: WebotsGimbal
+    constructor_args: {}
+  - id: WebotsFireNotify_0
+    name: WebotsFireNotify
+    constructor_args: {}
   - id: WebotsCamera_0
     name: WebotsCamera
     template_args:
@@ -158,3 +168,62 @@ modules:
           measurement_recenter_alpha: 0.05
           quality_recenter: true
       sync: '@CameraFrameSync_0'
+  - id: Aimer_0
+    name: Aimer
+    constructor_args:
+      cfg:
+        yaw_offset: -1.0
+        pitch_offset: -1.4
+        comming_angle: 60.0
+        leaving_angle: 20.0
+        yaw_rate_threshold: 2.0
+        high_speed_delay_time: 0.03
+        low_speed_delay_time: 0.015
+        default_bullet_speed: 23.0
+        min_valid_bullet_speed: 14.0
+        first_tolerance: 3.0
+        second_tolerance: 2.0
+        judge_distance: 2.0
+        auto_fire: true
+  - id: VisionPreview_0
+    name: VisionPreview
+    template_args:
+      Info: {constexpr: MainCameraInfo}
+    constructor_args:
+      runtime:
+        expr: "VisionPreview<ProjectConstexpr::MainCameraInfo>::RuntimeParam{.enabled = true, .record_raw = true, .record_overlay = true, .realtime_preview = false, .overlay = {.detector = true, .tracker = true, .aimer_trajectory = true, .candidate_debug = false}, .output_dir = \"/tmp/webots_autoaim_preview\", .raw_video_name = \"raw.avi\", .overlay_video_name = \"overlay.avi\", .preview_window_name = \"autoaim_preview\", .preview_scale = 1.0, .preview_wait_key_ms = 1, .record_fps = 100.0}"
+      sync: '@CameraFrameSync_0'
+  - id: SharedTopic_Host
+    name: SharedTopic
+    constructor_args:
+      uart_name: uart_host
+      task_stack_depth: 8192
+      buffer_size: 512
+      topic_configs:
+        - [bullet_speed, referee]
+  - id: SharedTopicClient_Host
+    name: SharedTopicClient
+    constructor_args:
+      uart_name: uart_host
+      task_stack_depth: 8192
+      buffer_size: 512
+      topic_configs:
+        - [target_eulr, tracker]
+        - [fire_notify, tracker]
+  - id: SharedTopic_MCU
+    name: SharedTopic
+    constructor_args:
+      uart_name: uart_client
+      task_stack_depth: 8192
+      buffer_size: 512
+      topic_configs:
+        - target_eulr
+        - fire_notify
+  - id: SharedTopicClient_MCU
+    name: SharedTopicClient
+    constructor_args:
+      uart_name: uart_client
+      task_stack_depth: 8192
+      buffer_size: 512
+      topic_configs:
+        - bullet_speed

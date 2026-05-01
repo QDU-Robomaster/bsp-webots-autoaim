@@ -4,3 +4,10 @@ modules:
 - qdu-future/CameraFrameSync
 - qdu-future/ArmorDetector
 - qdu-future/ArmorTracker
+- qdu-future/Aimer
+- qdu-future/VisionPreview
+- xrobot-org/SharedTopicClient
+- xrobot-org/SharedTopic
+- qdu-future/WebotsReferee
+- qdu-future/WebotsGimbal
+- qdu-future/WebotsFireNotify
