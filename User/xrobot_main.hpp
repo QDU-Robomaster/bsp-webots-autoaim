@@ -50,7 +50,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static Aimer Aimer_0(
       hw,
       appmgr,
-      {-1.0, -1.4, 60.0, 20.0, 2.0, 0.03, 0.015, 23.0, 14.0, 3.0, 2.0, 2.0, true}
+      {-1.0, -1.4, 60.0, 20.0, 2.0, 0.03, 0.015, 23.0, 14.0, 3.0, 2.0, 2.0, true, true, 0.0035, 50.0, 9000000.0, 0.0, 1.0, 100.0, 9000000.0, 0.0, 1.0, 7}
   );
   static VisionPreview<ProjectConstexpr::MainCameraInfo> VisionPreview_0(
       hw,
@@ -72,7 +72,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_host",
       8192,
       512,
-      {{"target_eulr", "tracker"}, {"fire_notify", "tracker"}}
+      {{"target_eulr", "tracker"}, {"fire_notify", "tracker"}, {"gimbal_plan", "tracker"}}
   );
   static SharedTopic SharedTopic_MCU(
       hw,
@@ -80,7 +80,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "uart_client",
       8192,
       512,
-      {"target_eulr", "fire_notify"}
+      {"target_eulr", "fire_notify", "gimbal_plan"}
   );
   static SharedTopicClient SharedTopicClient_MCU(
       hw,

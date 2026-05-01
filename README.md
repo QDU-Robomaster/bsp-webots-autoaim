@@ -15,9 +15,9 @@ VisionPreview 旁路订阅图像、detector、tracker 和 aimer 话题并直接�
 - IMU 每个 world step 发布，图像按 `100 Hz` 发布。
 - `CameraFrameSync` 消费同一相机的图像和 IMU，输出 `camera_imu`。
 - `ArmorDetector` / `ArmorTracker` 均消费同步后的相机/IMU 数据。
-- `Aimer` 消费 `tracker/target`、`referee/bullet_speed` 和 `gimbal/rotation`，发布 `tracker/target_eulr`、`tracker/fire_notify` 和 `tracker/send`。
+- `Aimer` 消费 `tracker/target`、`referee/bullet_speed` 和 `gimbal/rotation`，发布 `tracker/target_eulr`、`tracker/gimbal_plan`、`tracker/fire_notify` 和 `tracker/send`。
 - `SharedTopic` 通过 `User/main.cpp` 里的 pipe-backed 虚拟 UART 模拟上下位机低带宽话题转发。
-- `WebotsGimbal` 订阅默认域 `target_eulr`，按 Webots IMU 姿态和 gyro 反馈输出电机力矩。
+- `WebotsGimbal` 优先订阅默认域 `gimbal_plan`，兼容 `target_eulr`，按 Webots IMU 姿态和 gyro 反馈输出电机力矩。
 - `WebotsFireNotify` 订阅默认域 `fire_notify`，驱动 Webots `fire_led`。
 - `VisionPreview` 默认写 `/tmp/webots_autoaim_preview/raw.avi`、`overlay.avi` 和各 topic TSV；`overlay.avi` 是模块直出的叠加视频，不依赖桌面录屏。
 
@@ -74,12 +74,14 @@ libxr/     框架与底层组件
 - 瞄点和命令：
   - `tracker/target`
   - `tracker/target_eulr`
+  - `tracker/gimbal_plan`
   - `tracker/fire_notify`
   - `tracker/send`
   - `aimer/metrics`
   - `aimer/trajectory`
 - 虚拟下位机侧：
   - 默认域 `target_eulr`
+  - 默认域 `gimbal_plan`
   - 默认域 `fire_notify`
   - 默认域 `bullet_speed`
 

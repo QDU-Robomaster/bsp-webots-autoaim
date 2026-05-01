@@ -185,6 +185,17 @@ modules:
         second_tolerance: 2.0
         judge_distance: 2.0
         auto_fire: true
+        enable_mpc_plan: true
+        mpc_fire_thresh: 0.0035
+        max_yaw_acc: 50.0
+        q_yaw_pos: 9000000.0
+        q_yaw_vel: 0.0
+        r_yaw_acc: 1.0
+        max_pitch_acc: 100.0
+        q_pitch_pos: 9000000.0
+        q_pitch_vel: 0.0
+        r_pitch_acc: 1.0
+        mpc_max_iter: 7
   - id: VisionPreview_0
     name: VisionPreview
     template_args:
@@ -210,6 +221,7 @@ modules:
       topic_configs:
         - [target_eulr, tracker]
         - [fire_notify, tracker]
+        - [gimbal_plan, tracker]
   - id: SharedTopic_MCU
     name: SharedTopic
     constructor_args:
@@ -219,6 +231,7 @@ modules:
       topic_configs:
         - target_eulr
         - fire_notify
+        - gimbal_plan
   - id: SharedTopicClient_MCU
     name: SharedTopicClient
     constructor_args:
