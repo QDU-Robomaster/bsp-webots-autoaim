@@ -1,5 +1,6 @@
 from controller import Supervisor
 import math
+import os
 
 
 def main():
@@ -23,11 +24,11 @@ def main():
     origin_y = origin[1]
     origin_z = origin[2]
 
-    travel = 0.30
-    period_s = 1.6
-    spin_base = 4.0
-    spin_amp = 1.0
-    spin_period_s = 4.4
+    travel = float(os.environ.get("XR_TARGET_TRAVEL", "0.30"))
+    period_s = float(os.environ.get("XR_TARGET_PERIOD_S", "1.6"))
+    spin_base = float(os.environ.get("XR_TARGET_SPIN_BASE", "4.0"))
+    spin_amp = float(os.environ.get("XR_TARGET_SPIN_AMP", "1.0"))
+    spin_period_s = float(os.environ.get("XR_TARGET_SPIN_PERIOD_S", "4.4"))
     spin_omega = 2.0 * math.pi / spin_period_s
     spin_phase = 0.0
     next_log_s = 0.0
