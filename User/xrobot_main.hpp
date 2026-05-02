@@ -58,19 +58,11 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       VisionPreview<ProjectConstexpr::MainCameraInfo>::RuntimeParam{.enabled = true, .record_raw = true, .record_overlay = true, .realtime_preview = false, .overlay = {.detector = true, .tracker = true, .aimer_trajectory = true, .candidate_debug = false}, .output_dir = "/tmp/webots_autoaim_preview", .raw_video_name = "raw.avi", .overlay_video_name = "overlay.avi", .preview_window_name = "autoaim_preview", .preview_scale = 1.0, .preview_wait_key_ms = 1, .record_fps = 100.0},
       CameraFrameSync_0
   );
-  static SharedTopic SharedTopic_Host(
-      hw,
-      appmgr,
-      "uart_host",
-      8192,
-      512,
-      {{"bullet_speed", "referee"}}
-  );
+  static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {{"bullet_speed", "referee"}});
   static SharedTopicClient SharedTopicClient_Host(
       hw,
       appmgr,
       "uart_host",
-      8192,
       512,
       {{"target_eulr", "tracker"}, {"fire_notify", "tracker"}, {"gimbal_plan", "tracker"}}
   );
@@ -78,18 +70,10 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       hw,
       appmgr,
       "uart_client",
-      8192,
       512,
       {"target_eulr", "fire_notify", "gimbal_plan"}
   );
-  static SharedTopicClient SharedTopicClient_MCU(
-      hw,
-      appmgr,
-      "uart_client",
-      8192,
-      512,
-      {"bullet_speed"}
-  );
+  static SharedTopicClient SharedTopicClient_MCU(hw, appmgr, "uart_client", 512, {"bullet_speed"});
 
   while (true) {
     appmgr.MonitorAll();
