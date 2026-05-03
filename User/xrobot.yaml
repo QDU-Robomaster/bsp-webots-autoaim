@@ -208,7 +208,6 @@ modules:
     name: SharedTopic
     constructor_args:
       uart_name: uart_host
-      task_stack_depth: 8192
       buffer_size: 512
       topic_configs:
         - [bullet_speed, referee]
@@ -216,7 +215,6 @@ modules:
     name: SharedTopicClient
     constructor_args:
       uart_name: uart_host
-      task_stack_depth: 8192
       buffer_size: 512
       topic_configs:
         - [target_eulr, tracker]
@@ -226,7 +224,6 @@ modules:
     name: SharedTopic
     constructor_args:
       uart_name: uart_client
-      task_stack_depth: 8192
       buffer_size: 512
       topic_configs:
         - target_eulr
@@ -236,7 +233,6 @@ modules:
     name: SharedTopicClient
     constructor_args:
       uart_name: uart_client
-      task_stack_depth: 8192
       buffer_size: 512
       topic_configs:
         - bullet_speed
