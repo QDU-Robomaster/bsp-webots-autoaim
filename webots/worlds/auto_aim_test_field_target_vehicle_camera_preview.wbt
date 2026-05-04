@@ -263,11 +263,6 @@ Robot {
                                               width 800
                                               height 600
                                               exposure 2
-                                              lens Lens {
-                                                center 0.495363 0.506862
-                                                radialCoefficients -0.0955869 0.30137
-                                                tangentialCoefficients -0.000821847 0.000245824
-                                              }
                                             }
                                             Display {
                                               width 800

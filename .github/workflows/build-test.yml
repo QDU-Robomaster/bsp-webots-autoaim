@@ -15,6 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: check webots camera intrinsics
+      run: python3 ci/check_webots_camera_intrinsics.py
     - name: init submodule
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" && git submodule update --init --recursive
     - name: install pip packages
