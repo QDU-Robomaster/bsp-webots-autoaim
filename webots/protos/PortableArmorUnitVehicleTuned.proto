@@ -66,7 +66,7 @@ PROTO PortableArmorUnitVehicleTuned [
               material Material {
                 ambientIntensity 1
                 diffuseColor 1 1 1
-                emissiveColor 1 1 1
+                emissiveColor 0.35 0.35 0.35
               }
               texture ImageTexture {
                 url [
