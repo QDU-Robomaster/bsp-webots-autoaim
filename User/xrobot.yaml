@@ -104,22 +104,11 @@ modules:
     constructor_args:
       cfg:
         detect_color: 2
-        traditional:
-          threshold: 85.0
-          max_angle_error_deg: 48.0
-          min_lightbar_ratio: 1.5
-          max_lightbar_ratio: 20.0
-          min_lightbar_length: 8.0
-        yolo:
-          use_roi: false
-          roi_x: 420
-          roi_y: 50
-          roi_width: 600
-          roi_height: 600
-          use_traditional_refine: true
-          score_threshold: 0.5
-          nms_threshold: 0.3
-          min_confidence: 0.5
+        network:
+          score_threshold: 0.1
+          min_confidence: 0.1
+          enable_quad_check: true
+          min_quad_area_px: 16.0
       sync: '@CameraFrameSync_0'
   - id: ArmorTracker_0
     name: ArmorTracker

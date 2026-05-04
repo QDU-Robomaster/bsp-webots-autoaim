@@ -22,6 +22,10 @@ jobs:
     - name: get modules && setup
       run: xrobot_setup
     - name: config cmake
-      run: cmake . -Bbuild -G Ninja
+      run: >
+        cmake . -Bbuild -G Ninja
+        -DLIBXR_PRINT_INTEGER_ENABLE_64BIT=ON
+        -DLIBXR_PRINT_FLOAT_ENABLE_DOUBLE=ON
+        -DLIBXR_PRINT_ENABLE_POINTER=ON
     - name: build
       run: cmake --build build
