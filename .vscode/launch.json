@@ -1,16 +1,63 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
+            "name": "Webots: Debug controller (paste extern URL)",
+            "type": "gdb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/build/rm_auto_aim",
-            "args": [],
-            "cwd": "${workspaceFolder}"
+            "target": "${workspaceFolder}/build/debug/rm_auto_aim",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build: Webots debug",
+            "valuesFormatting": "parseText",
+            "environment": [
+                {
+                    "name": "WEBOTS_HOME",
+                    "value": "/usr/local/webots"
+                },
+                {
+                    "name": "WEBOTS_CONTROLLER_URL",
+                    "value": "${input:webotsControllerUrl}"
+                },
+                {
+                    "name": "WEBOTS_SIM_FLOW_RATE",
+                    "value": "0.1"
+                },
+                {
+                    "name": "QT_QPA_PLATFORM",
+                    "value": "offscreen"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/usr/local/webots/lib/controller:${env:LD_LIBRARY_PATH}"
+                },
+                {
+                    "name": "XR_TRACKER_TRUTH_COMPARE",
+                    "value": "1"
+                },
+                {
+                    "name": "XR_TRACKER_VIDEO_RECORDER",
+                    "value": "1"
+                },
+                {
+                    "name": "XR_FREQ_PROBE",
+                    "value": "1"
+                }
+            ]
+        },
+        {
+            "name": "Webots: Attach to running rm_auto_aim",
+            "type": "gdb",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "valuesFormatting": "parseText"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "webotsControllerUrl",
+            "type": "promptString",
+            "description": "Paste the ipc:// or tcp:// extern controller URL printed by Webots",
+            "default": "ipc://"
         }
     ]
 }

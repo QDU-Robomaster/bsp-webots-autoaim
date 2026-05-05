@@ -1,6 +1,8 @@
 /build
 /install
 /log
+.docker-runs/
+.vscode-runs/
 .history/
 .git/
 .cache/

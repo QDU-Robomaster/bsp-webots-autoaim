@@ -1,0 +1,43 @@
+name: bsp-webots-autoaim
+
+services:
+  autoaim-build:
+    image: bsp-webots-autoaim-webots:local
+    build:
+      context: ./docker
+    working_dir: /workspace
+    environment:
+      WEBOTS_HOME: /usr/local/webots
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/workspace
+    command: ["/bin/bash", "/workspace/docker/entrypoints/build.sh"]
+
+  autoaim-preview:
+    image: bsp-webots-autoaim-webots:local
+    build:
+      context: ./docker
+    working_dir: /workspace
+    environment:
+      WEBOTS_HOME: /usr/local/webots
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUNBUFFERED: "1"
+      XR_RUN_ROOT:
+      XR_RUNTIME_SEC:
+      XR_SIM_FLOW_RATE:
+      XR_TRACKER_TRUTH_COMPARE:
+      XR_TRACKER_TRUTH_COMPARE_PATH:
+      XR_TRACKER_TRUTH_COMPARE_MAX_FRAMES:
+      XR_TRACKER_TRUTH_COMPARE_CACHE_SIZE:
+      XR_TRACKER_VIDEO_RECORDER:
+      XR_TRACKER_VIDEO_PATH:
+      XR_TRACKER_VIDEO_MAX_FRAMES:
+      XR_DETECTOR_TRUTH_COMPARE:
+      XR_DETECTOR_TRUTH_COMPARE_PATH:
+      XR_DETECTOR_TRUTH_COMPARE_MAX_FRAMES:
+      XR_DETECTOR_VIDEO_RECORDER:
+      XR_DETECTOR_VIDEO_PATH:
+    volumes:
+      - .:/workspace
+    command: ["/bin/bash", "/workspace/docker/entrypoints/headless_preview.sh"]

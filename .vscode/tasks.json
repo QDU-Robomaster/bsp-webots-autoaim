@@ -1,0 +1,125 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "XRobot: generate Webots main",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-m",
+                "xrobot.GenerateMain",
+                "--output",
+                "User/xrobot_main.hpp"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: configure Webots debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S",
+                ".",
+                "-B",
+                "build/debug",
+                "-G",
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                "-DAUTO_AIM_PREVIEW_IMAGE=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: build Webots debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build/debug",
+                "--target",
+                "rm_auto_aim",
+                "--parallel",
+                "24"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build: Webots debug",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "XRobot: generate Webots main",
+                "CMake: configure Webots debug",
+                "CMake: build Webots debug"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Webots: headless preview 10s",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "run_headless_preview.py",
+                "--repo",
+                "${workspaceFolder}",
+                "--controller",
+                "build/debug/rm_auto_aim",
+                "--run-root",
+                "${workspaceFolder}/.vscode-runs",
+                "--runtime-sec",
+                "10"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build: Webots debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "XR_TRACKER_TRUTH_COMPARE": "1",
+                    "XR_TRACKER_TRUTH_COMPARE_MAX_FRAMES": "600",
+                    "XR_TRACKER_VIDEO_RECORDER": "1",
+                    "XR_TRACKER_VIDEO_MAX_FRAMES": "600",
+                    "XR_DETECTOR_VIDEO_RECORDER": "1",
+                    "XR_DETECTOR_VIDEO_MAX_FRAMES": "600",
+                    "XR_FREQ_PROBE": "1"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Webots: manual extern world",
+            "type": "shell",
+            "command": "xvfb-run",
+            "args": [
+                "-a",
+                "/usr/local/bin/webots",
+                "--port=1235",
+                "--stdout",
+                "--stderr",
+                "--batch",
+                "--mode=fast",
+                "--extern-urls",
+                "webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "WEBOTS_HOME": "/usr/local/webots"
+                }
+            },
+            "problemMatcher": []
+        }
+    ]
+}

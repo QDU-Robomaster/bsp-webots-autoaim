@@ -1,0 +1,18 @@
+services:
+  autoaim-dev:
+    image: bsp-webots-autoaim-webots:local
+    build:
+      context: ./docker
+    working_dir: /workspace
+    init: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      WEBOTS_HOME: /usr/local/webots
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/workspace
+    command: ["/bin/bash", "-lc", "sleep infinity"]

@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "xrobot.xrobot",
+        "ms-vscode.cmake-tools",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "webfreak.debug",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+    ],
+    "unwantedRecommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack"
+    ]
+}

@@ -1,0 +1,98 @@
+{
+    "name": "bsp-webots-autoaim",
+    "dockerComposeFile": [
+        "../compose.yaml",
+        "compose.devcontainer.yaml"
+    ],
+    "service": "autoaim-dev",
+    "runServices": [
+        "autoaim-dev"
+    ],
+    "shutdownAction": "stopCompose",
+    "workspaceFolder": "/workspace",
+    "remoteUser": "root",
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xrobot.xrobot",
+                "ms-vscode.cmake-tools",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "webfreak.debug",
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "cmake.configureOnOpen": false,
+                "cmake.useCMakePresets": "never",
+                "cmake.buildDirectory": "${containerWorkspaceFolder}/build/debug",
+                "cmake.configureSettings": {
+                    "CMAKE_BUILD_TYPE": "Debug",
+                    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                    "AUTO_AIM_PREVIEW_IMAGE": "ON"
+                },
+                "cmake.options.statusBarVisibility": "compact",
+                "cmake.options.advanced": {
+                    "configure": {
+                        "projectStatusVisibility": "hidden"
+                    },
+                    "configurePreset": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "buildPreset": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "testPreset": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "packagePreset": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "workflowPreset": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "kit": {
+                        "statusBarVisibility": "visible",
+                        "statusBarLength": 18
+                    },
+                    "variant": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "folder": {
+                        "statusBarVisibility": "hidden",
+                        "projectStatusVisibility": "hidden"
+                    },
+                    "buildTarget": {
+                        "statusBarVisibility": "compact",
+                        "statusBarLength": 18
+                    },
+                    "launchTarget": {
+                        "statusBarVisibility": "hidden"
+                    },
+                    "build": {
+                        "statusBarVisibility": "icon",
+                        "projectStatusVisibility": "hidden"
+                    },
+                    "debug": {
+                        "statusBarVisibility": "hidden",
+                        "projectStatusVisibility": "hidden"
+                    },
+                    "launch": {
+                        "statusBarVisibility": "hidden",
+                        "projectStatusVisibility": "hidden"
+                    }
+                },
+                "cmake.parallelJobs": 24,
+                "C_Cpp.intelliSenseEngine": "disabled",
+                "C_Cpp.autocomplete": "disabled",
+                "C_Cpp.errorSquiggles": "disabled",
+                "clangd.arguments": [
+                    "--compile-commands-dir=${containerWorkspaceFolder}/build/debug",
+                    "--query-driver=/usr/bin/c++,/usr/bin/g++,/usr/bin/cc,/usr/bin/gcc",
+                    "--background-index",
+                    "--clang-tidy"
+                ]
+            }
+        }
+    }
+}
