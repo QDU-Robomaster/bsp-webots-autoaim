@@ -10,7 +10,6 @@
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
 #include "Aimer.hpp"
-#include "VisionPreview.hpp"
 #include "SharedTopic.hpp"
 #include "SharedTopicClient.hpp"
 #include "xrobot_constexpr.hpp"
@@ -38,7 +37,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static ArmorDetector<ProjectConstexpr::MainCameraInfo> ArmorDetector_0(
       hw,
       appmgr,
-      {2, {0.1, 0.1, true, 16.0}},
+      {2, {0.1, 0.1, true, 16.0}, false, "host", "robot_game_ref", {false, "armor_detector_preview", 0.5, 1, 1}},
       CameraFrameSync_0
   );
   static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
@@ -51,12 +50,6 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       hw,
       appmgr,
       {-1.0, -1.4, 60.0, 20.0, 2.0, 0.03, 0.015, 23.0, 14.0, 3.0, 2.0, 2.0, true, true, 0.0035, 50.0, 9000000.0, 0.0, 1.0, 100.0, 9000000.0, 0.0, 1.0, 7}
-  );
-  static VisionPreview<ProjectConstexpr::MainCameraInfo> VisionPreview_0(
-      hw,
-      appmgr,
-      VisionPreview<ProjectConstexpr::MainCameraInfo>::RuntimeParam{.enabled = true, .record_raw = true, .record_overlay = true, .realtime_preview = false, .overlay = {.detector = true, .tracker = true, .aimer_trajectory = true, .candidate_debug = false}, .output_dir = "/tmp/webots_autoaim_preview", .raw_video_name = "raw.avi", .overlay_video_name = "overlay.avi", .preview_window_name = "autoaim_preview", .preview_scale = 1.0, .preview_wait_key_ms = 1, .record_fps = 100.0},
-      CameraFrameSync_0
   );
   static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {{"bullet_speed", "referee"}});
   static SharedTopicClient SharedTopicClient_Host(

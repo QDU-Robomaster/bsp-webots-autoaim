@@ -6,7 +6,7 @@ modules:
 - qdu-future/ArmorDetector
 - qdu-future/ArmorTracker@codex/tracker-algorithm-20260502
 - qdu-future/Aimer
-- qdu-future/VisionPreview@codex/detector-types-include-20260506
+- qdu-future/VisionPreview
 - xrobot-org/SharedTopicClient
 - xrobot-org/SharedTopic
 - qdu-future/WebotsReferee
