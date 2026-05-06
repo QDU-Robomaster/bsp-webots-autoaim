@@ -72,12 +72,6 @@ modules:
     name: WebotsReferee
     constructor_args:
       bullet_speed: 23.0
-  - id: WebotsGimbal_0
-    name: WebotsGimbal
-    constructor_args: {}
-  - id: WebotsFireNotify_0
-    name: WebotsFireNotify
-    constructor_args: {}
   - id: WebotsCamera_0
     name: WebotsCamera
     template_args:
@@ -149,19 +143,6 @@ modules:
         thresholds:
           tracking_thres: 5
           lost_time_thres: 0.3
-        solver:
-          k: 0.092
-          bias_time: 100
-          s_bias: 0.19133
-          z_bias: 0.21265
-          calculate_mode: {expr: SolveTrajectory::NORMAL}
-          table_config:
-            max_x: 13.0
-            min_x: 0.0
-            max_y: 1.0
-            min_y: -1.0
-            resolution: 0.01
-            filename: {string: table.bin}
         ekf:
           sigma2_q_xyz: 20.0
           sigma2_q_yaw: 100.0
@@ -176,39 +157,26 @@ modules:
         frames:
           rotation: [0.5, -0.5, 0.5, -0.5]
           translation: [0.0, 0.0, 0.0]
-        sp:
+        model:
           enable_pair_dz: true
-          measurement_recenter_alpha: 0.05
+          measurement_recenter_alpha: 0.25
           quality_recenter: true
+          enable_pair_geometry: false
+          enable_output_meas_anchor: false
+          enable_aimer_meas_anchor: true
+          enable_fixed_pose_yaw_opt: false
+        preview:
+          # tracker 实时预览总开关；false 时不启动预览线程，Webots 默认关闭。
+          enabled: false
+          # OpenCV 窗口名，只影响本模块预览窗口标题。
+          preview_window_name: armor_tracker_preview
+          # 显示缩放比例，只影响窗口画面，不改变 tracker 输入图像。
+          preview_scale: 0.5
+          # cv::waitKey 事件轮询时间，单位 ms。
+          preview_wait_key_ms: 1
+          # 预览队列长度；处理不过来时丢旧帧，不反压主链路。
+          queue_capacity: 1
       sync: '@CameraFrameSync_0'
-  - id: Aimer_0
-    name: Aimer
-    constructor_args:
-      cfg:
-        yaw_offset: -1.0
-        pitch_offset: -1.4
-        comming_angle: 60.0
-        leaving_angle: 20.0
-        yaw_rate_threshold: 2.0
-        high_speed_delay_time: 0.03
-        low_speed_delay_time: 0.015
-        default_bullet_speed: 23.0
-        min_valid_bullet_speed: 14.0
-        first_tolerance: 3.0
-        second_tolerance: 2.0
-        judge_distance: 2.0
-        auto_fire: true
-        enable_mpc_plan: true
-        mpc_fire_thresh: 0.0035
-        max_yaw_acc: 50.0
-        q_yaw_pos: 9000000.0
-        q_yaw_vel: 0.0
-        r_yaw_acc: 1.0
-        max_pitch_acc: 100.0
-        q_pitch_pos: 9000000.0
-        q_pitch_vel: 0.0
-        r_pitch_acc: 1.0
-        mpc_max_iter: 7
   - id: SharedTopic_Host
     name: SharedTopic
     constructor_args:
@@ -216,24 +184,6 @@ modules:
       buffer_size: 512
       topic_configs:
         - [bullet_speed, referee]
-  - id: SharedTopicClient_Host
-    name: SharedTopicClient
-    constructor_args:
-      uart_name: uart_host
-      buffer_size: 512
-      topic_configs:
-        - [target_eulr, tracker]
-        - [fire_notify, tracker]
-        - [gimbal_plan, tracker]
-  - id: SharedTopic_MCU
-    name: SharedTopic
-    constructor_args:
-      uart_name: uart_client
-      buffer_size: 512
-      topic_configs:
-        - target_eulr
-        - fire_notify
-        - gimbal_plan
   - id: SharedTopicClient_MCU
     name: SharedTopicClient
     constructor_args:

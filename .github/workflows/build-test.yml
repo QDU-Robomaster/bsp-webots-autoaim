@@ -21,9 +21,26 @@ jobs:
       run: pip install xrobot
     - name: get modules && setup
       run: xrobot_setup
+    - name: detect OpenVINO
+      shell: bash
+      run: |
+        set -euo pipefail
+        openvino_dir=""
+        for root in /opt /usr/local /usr; do
+          openvino_dir="$(find "$root" -type d -path '*/runtime/cmake' -print -quit 2>/dev/null || true)"
+          if [ -n "$openvino_dir" ]; then
+            break
+          fi
+        done
+        if [ -z "$openvino_dir" ]; then
+          echo "OpenVINO runtime CMake directory not found" >&2
+          exit 1
+        fi
+        echo "OPENVINO_DIR=$openvino_dir" >> "$GITHUB_ENV"
     - name: config cmake
       run: >
         cmake . -Bbuild -G Ninja
+        -DOpenVINO_DIR="$OPENVINO_DIR"
         -DLIBXR_PRINT_INTEGER_ENABLE_64BIT=ON
         -DLIBXR_PRINT_FLOAT_ENABLE_DOUBLE=ON
         -DLIBXR_PRINT_ENABLE_POINTER=ON

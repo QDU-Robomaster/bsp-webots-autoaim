@@ -30,16 +30,6 @@ def utc_stamp() -> str:
     return time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
 
 
-def ensure_symlink(run_dir: Path, repo: Path) -> None:
-    tracker_dir = run_dir / 'Modules' / 'ArmorTracker'
-    tracker_dir.mkdir(parents=True, exist_ok=True)
-    target = repo / 'Modules' / 'ArmorTracker' / 'table.bin'
-    link = tracker_dir / 'table.bin'
-    if link.exists() or link.is_symlink():
-        link.unlink()
-    link.symlink_to(target)
-
-
 def terminate(proc: subprocess.Popen | None) -> int | None:
     if proc is None:
         return None
@@ -92,7 +82,6 @@ def main() -> int:
     run_root = args.run_root if args.run_root.is_absolute() else repo / args.run_root
     run_dir = run_root / f'webots_preview_{utc_stamp()}'
     run_dir.mkdir(parents=True, exist_ok=True)
-    ensure_symlink(run_dir, repo)
 
     launcher_log = run_dir / '00_launcher.log'
     webots_log = run_dir / '10_webots.log'
@@ -174,8 +163,7 @@ def main() -> int:
                         ctrl_cmd = ['stdbuf', '-oL', '-eL', str(controller)]
                         log('starting controller: ' + ' '.join(ctrl_cmd) + f' url={controller_url}')
                         log('controller env: ' + env_snapshot(ctrl_env, [
-                            'XR_TRACKER_SP_ENABLE_OUTPUT_MEAS_ANCHOR',
-                            'XR_SOLVER_USE_TARGET_DZ',
+                            'XR_TRACKER_MODEL_ENABLE_OUTPUT_MEAS_ANCHOR',
                             'XR_WEBOTS_PITCH_SLEW_STEP_RAD',
                             'XR_TRACKER_TRUTH_COMPARE',
                             'XR_TRACKER_TRUTH_COMPARE_PATH',
