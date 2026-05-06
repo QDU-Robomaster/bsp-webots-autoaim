@@ -2,6 +2,29 @@ from controller import Supervisor
 import math
 
 
+def clamp(value, lower, upper):
+    return max(lower, min(upper, value))
+
+
+def raised_cosine_pulse(seconds, period_s, center_s, half_width_s):
+    phase = seconds % period_s
+    delta = abs(phase - center_s)
+    delta = min(delta, period_s - delta)
+    if delta >= half_width_s:
+        return 0.0
+    return 0.5 * (1.0 + math.cos(math.pi * delta / half_width_s))
+
+
+def alternating_pulse(seconds, period_s, center_s, half_width_s):
+    sign = 1.0 if int(math.floor(seconds / period_s)) % 2 == 0 else -1.0
+    return sign * raised_cosine_pulse(seconds, period_s, center_s, half_width_s)
+
+
+def smoothstep(value):
+    value = clamp(value, 0.0, 1.0)
+    return value * value * (3.0 - 2.0 * value)
+
+
 def main():
     robot = Supervisor()
     step_ms = int(robot.getBasicTimeStep())
@@ -20,41 +43,60 @@ def main():
         raise RuntimeError("TARGET_SPIN rotation field not found")
 
     origin = translation_field.getSFVec3f()
+    origin_x = origin[0]
     origin_y = origin[1]
     origin_z = origin[2]
 
-    travel = 0.30
-    period_s = 1.6
-    spin_base = 4.0
-    spin_amp = 1.0
-    spin_period_s = 4.4
-    spin_omega = 2.0 * math.pi / spin_period_s
     spin_phase = 0.0
     next_log_s = 0.0
+    prev_x = origin_x
+    prev_y = origin_y
 
-    def triangle_wave(seconds):
-        phase = (seconds / period_s) % 1.0
-        if phase < 0.25:
-            return 4.0 * phase
-        if phase < 0.75:
-            return 2.0 - 4.0 * phase
-        return -4.0 + 4.0 * phase
+    def raw_x_offset(seconds):
+        return (
+            0.34 * math.sin(2.0 * math.pi * seconds / 3.2)
+            + 0.11 * math.sin(2.0 * math.pi * seconds / 1.05 + 0.6)
+            + 0.10 * alternating_pulse(seconds + 0.45, 3.4, 0.55, 0.32)
+        )
+
+    def raw_y_offset(seconds):
+        return (
+            0.23 * math.sin(2.0 * math.pi * seconds / 4.7 + 1.1)
+            + 0.09 * math.sin(2.0 * math.pi * seconds / 1.7 + 2.4)
+            - 0.12 * alternating_pulse(seconds + 1.35, 4.1, 0.70, 0.42)
+        )
 
     while robot.step(step_ms) != -1:
         t = robot.getTime()
-        x = travel * triangle_wave(t)
-        spin_v = spin_base + spin_amp * math.sin(spin_omega * t)
+        startup = smoothstep(t / 1.0)
+        x_offset = startup * raw_x_offset(t)
+        y_offset = startup * raw_y_offset(t)
+        x = origin_x + clamp(x_offset, -0.52, 0.52)
+        y = origin_y + clamp(y_offset, -0.42, 0.42)
+
+        spin_v = (
+            3.4
+            + 1.6 * math.sin(2.0 * math.pi * t / 3.9)
+            + 0.9 * math.sin(2.0 * math.pi * t / 1.4 + 0.7)
+            + 2.2 * alternating_pulse(t + 0.70, 5.6, 0.85, 0.50)
+            - 1.4 * raised_cosine_pulse(t + 2.0, 6.8, 0.35, 0.65)
+        )
+        spin_v = clamp(spin_v, -1.2, 7.2)
         spin_phase += spin_v * dt
 
-        translation_field.setSFVec3f([x, origin_y, origin_z])
+        translation_field.setSFVec3f([x, y, origin_z])
         spin_rotation_field.setSFRotation([0, 0, 1, spin_phase])
 
         if t >= next_log_s:
+            speed_xy = math.hypot(x - prev_x, y - prev_y) / dt if dt > 0.0 else 0.0
             print(
-                f"[spin-supervisor] t={t:.2f}s omega_cmd={spin_v:.3f}rad/s "
-                f"phase={spin_phase:.3f}rad x={x:.3f}m"
+                f"[target-maneuver] t={t:.2f}s x={x:.3f}m y={y:.3f}m "
+                f"speed_xy={speed_xy:.3f}m/s omega_cmd={spin_v:.3f}rad/s "
+                f"phase={spin_phase:.3f}rad"
             )
             next_log_s = t + 0.5
+        prev_x = x
+        prev_y = y
 
 
 if __name__ == "__main__":
