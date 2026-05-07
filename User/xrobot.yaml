@@ -103,6 +103,8 @@ modules:
           min_confidence: 0.1
           enable_quad_check: true
           min_quad_area_px: 16.0
+          input_width: 512
+          input_height: 384
         referee_auto_detect_color: false
         referee_domain: host
         referee_topic: robot_game_ref
