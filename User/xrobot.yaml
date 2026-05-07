@@ -85,12 +85,32 @@ modules:
         pose_def_name: camera
         image_topic_name: {constexpr: MainImageTopicName}
         imu_topic_name: {constexpr: MainImuTopicName}
+        raw_topic_domain_name: libxr_def_domain
+        trigger_gpio_name: CAMERA
+        trigger_active_level: true
+  - id: CameraSync_0
+    name: CameraSync
+    constructor_args:
+      camera_pin_name: CAMERA
+      camera_sync_topic_name: camera_sync_result
+      imu_topic_name: camera_gyro
+      trigger_div: 3
+      camera_sync_command_topic_name: camera_sync_command
   - id: CameraFrameSync_0
     name: CameraFrameSync
     template_args:
       Info: {constexpr: MainCameraInfo}
     constructor_args:
       camera: '@WebotsCamera_0'
+      runtime:
+        mode: {expr: "CameraFrameSync<ProjectConstexpr::MainCameraInfo>::SyncMode::RAW_PROBE"}
+        offset_us: 0
+        host_topic_domain_name: libxr_def_domain
+        sync_command_topic_name: camera_sync_command
+        sync_result_topic_name: camera_sync_result
+        sync_probe_div: 3
+        sync_active_level: 1
+        target_trigger_hz: {expr: "50.0F"}
   - id: ArmorDetector_0
     name: ArmorDetector
     template_args:
@@ -195,7 +215,7 @@ modules:
       uart_name: uart_host
       buffer_size: 512
       topic_configs:
-        - [bullet_speed, referee]
+        - bullet_speed
   - id: SharedTopicClient_MCU
     name: SharedTopicClient
     constructor_args:

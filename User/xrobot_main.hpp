@@ -4,6 +4,7 @@
 // Module headers
 #include "WebotsReferee.hpp"
 #include "WebotsCamera.hpp"
+#include "CameraSync.hpp"
 #include "CameraFrameSync.hpp"
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
@@ -20,14 +21,24 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static WebotsCamera<ProjectConstexpr::MainCameraInfo> WebotsCamera_0(
       hw,
       appmgr,
-      {"camera", 100, 0.8, 0.0, "camera", ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName}
+      {"camera", 100, 0.8, 0.0, "camera", ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName, "libxr_def_domain", "CAMERA", true}
+  );
+  static CameraSync CameraSync_0(
+      hw,
+      appmgr,
+      "CAMERA",
+      "camera_sync_result",
+      "camera_gyro",
+      3,
+      "camera_sync_command"
   );
   static CameraFrameSync<
       ProjectConstexpr::MainCameraInfo
   > CameraFrameSync_0(
       hw,
       appmgr,
-      WebotsCamera_0
+      WebotsCamera_0,
+      {CameraFrameSync<ProjectConstexpr::MainCameraInfo>::SyncMode::RAW_PROBE, 0, "libxr_def_domain", "camera_sync_command", "camera_sync_result", 3, 1, 50.0F}
   );
   static ArmorDetector<ProjectConstexpr::MainCameraInfo> ArmorDetector_0(
       hw,
@@ -41,7 +52,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       {{30.0, 30.0}, {0.15, 1.0}, {5, 0.3}, {20.0, 100.0, 800.0}, {0.26, 0.12, 0.4}, {0.05, 0.02}, {{0.5, -0.5, 0.5, -0.5}, {0.0, 0.0, 0.0}}, {true, 0.25, true, false, false, true, false}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
       CameraFrameSync_0
   );
-  static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {{"bullet_speed", "referee"}});
+  static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {"bullet_speed"});
   static SharedTopicClient SharedTopicClient_MCU(hw, appmgr, "uart_client", 512, {"bullet_speed"});
 
   while (true) {
