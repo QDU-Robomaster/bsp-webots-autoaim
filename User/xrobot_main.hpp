@@ -49,7 +49,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
       hw,
       appmgr,
-      {{-1, false, -1, 2, 15, 75, 1}, {15.0, 0.135, 0.225, 0.056}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
+      {{false, -1, 2, 15, 75, 1}, {15.0, 0.135, 0.225, 0.056}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
       CameraFrameSync_0
   );
   static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {"bullet_speed"});
