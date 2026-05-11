@@ -80,61 +80,39 @@ PROTO PortableArmorUnitVehicleTuned [
           }
         ]
       }
-      Transform {
-        translation -0.0404043955 0.0028003 -0.0609129272
-        rotation 1 0 0 1.5707996938995747
+      DEF XR_LEFT_LIGHTBAR_POSE Pose {
+        translation 0.0675 -0.009 -0.0008
+        rotation 1 0 0 1.57079632679
         children [
-          DEF XR_LEFT_LIGHTBAR_POSE Pose {
-            translation 0.1079043955 0.0601129272 0.0071
-          }
-          Transform {
-            scale 0.001 0.0009398346 0.001
-            translationStep 0.001
-            children [
-              Shape {
-                appearance PBRAppearance {
-                  baseColor 0 0 1
-                  roughness 1
-                  IBLStrength 5
-                  emissiveColor 0 0 1
-                  emissiveIntensity 175
-                }
-                geometry Mesh {
-                  url [
-                    "../meshes/generated/portable_armor_lightbar.stl"
-                  ]
-                }
-              }
-            ]
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 0.05 1
+              roughness 1
+              metalness 0
+              emissiveColor 0 0.05 1
+              emissiveIntensity 175
+            }
+            geometry Box {
+              size 0.012 0.064 0.0005
+            }
           }
         ]
       }
-      Transform {
-        translation 0.0404043955 0.0028003 -0.0609129272
-        rotation 1 0 0 1.5707996938995747
+      DEF XR_RIGHT_LIGHTBAR_POSE Pose {
+        translation -0.0675 -0.009 -0.0008
+        rotation 1 0 0 1.57079632679
         children [
-          DEF XR_RIGHT_LIGHTBAR_POSE Pose {
-            translation -0.1079043955 0.0601129272 0.0071
-          }
-          Transform {
-            scale -0.001 0.0009398346 0.001
-            translationStep 0.001
-            children [
-              Shape {
-                appearance PBRAppearance {
-                  baseColor 0 0 1
-                  roughness 1
-                  IBLStrength 5
-                  emissiveColor 0 0 1
-                  emissiveIntensity 175
-                }
-                geometry Mesh {
-                  url [
-                    "../meshes/generated/portable_armor_lightbar.stl"
-                  ]
-                }
-              }
-            ]
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 0.05 1
+              roughness 1
+              metalness 0
+              emissiveColor 0 0.05 1
+              emissiveIntensity 175
+            }
+            geometry Box {
+              size 0.012 0.064 0.0005
+            }
           }
         ]
       }
