@@ -8,6 +8,7 @@
 #include "CameraFrameSync.hpp"
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
+#include "Aimer.hpp"
 #include "SharedTopic.hpp"
 #include "SharedTopicClient.hpp"
 #include "xrobot_constexpr.hpp"
@@ -51,6 +52,11 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       appmgr,
       {{false, -1, 2, 15, 75, 1}, {15.0, 0.135, 0.225, 0.056}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
       CameraFrameSync_0
+  );
+  static Aimer aimer(
+      hw,
+      appmgr,
+      {-1.0, -1.4, 2.0, 23.0, 14.0, true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015, 0.03, 0.135, 0.055, 0.015, 0.003, 0.05, false, true, 0.05, 100.0, 50.0, 1.0, 1.0, 100.0, 50.0, 1.0, 1.0, 10}
   );
   static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {"bullet_speed"});
   static SharedTopicClient SharedTopicClient_MCU(hw, appmgr, "uart_client", 512, {"bullet_speed"});
