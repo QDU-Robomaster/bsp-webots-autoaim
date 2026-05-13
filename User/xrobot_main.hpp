@@ -9,8 +9,6 @@
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
 #include "Aimer.hpp"
-#include "SharedTopic.hpp"
-#include "SharedTopicClient.hpp"
 #include "xrobot_constexpr.hpp"
 
 static void XRobotMain(LibXR::HardwareContainer &hw) {
@@ -58,8 +56,6 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       appmgr,
       {-1.0, -1.4, 2.0, 23.0, 14.0, true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015, 0.03, 0.135, 0.055, 0.015, 0.003, 0.05, false, true, 0.05, 100.0, 50.0, 1.0, 1.0, 100.0, 50.0, 1.0, 1.0, 10}
   );
-  static SharedTopic SharedTopic_Host(hw, appmgr, "uart_host", 512, {"bullet_speed"});
-  static SharedTopicClient SharedTopicClient_MCU(hw, appmgr, "uart_client", 512, {"bullet_speed"});
 
   while (true) {
     appmgr.MonitorAll();

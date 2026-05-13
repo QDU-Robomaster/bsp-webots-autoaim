@@ -234,17 +234,3 @@ modules:
         q_pitch_vel: 1.0
         r_pitch_acc: 1.0
         mpc_max_iter: 10
-  - id: SharedTopic_Host
-    name: SharedTopic
-    constructor_args:
-      uart_name: uart_host
-      buffer_size: 512
-      topic_configs:
-        - bullet_speed
-  - id: SharedTopicClient_MCU
-    name: SharedTopicClient
-    constructor_args:
-      uart_name: uart_client
-      buffer_size: 512
-      topic_configs:
-        - bullet_speed

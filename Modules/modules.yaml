@@ -7,6 +7,4 @@ modules:
 - qdu-future/ArmorTracker
 - qdu-future/Aimer
 - qdu-future/VisionPreview
-- xrobot-org/SharedTopicClient
-- xrobot-org/SharedTopic
 - qdu-future/WebotsReferee
