@@ -13,15 +13,12 @@
 #include "app_framework.hpp"
 #include "libxr.hpp"
 #include "libxr_def.hpp"
-#include "libxr_pipe.hpp"
-#include "libxr_rw.hpp"
 #include "libxr_system.hpp"
 #include "logger.hpp"
 #include "message.hpp"
 #include "ramfs.hpp"
 #include "terminal.hpp"
 #include "thread.hpp"
-#include "uart.hpp"
 #include "xrobot_main.hpp"
 
 namespace
@@ -91,19 +88,6 @@ void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::MicrosecondTimestamp,
   }
 };
 
-class UartBridge : public LibXR::UART
-{
- public:
-  UartBridge(LibXR::ReadPort *read_port, LibXR::WritePort *write_port)
-      : UART(read_port, write_port)
-  {
-  }
-  LibXR::ErrorCode SetConfig(LibXR::UART::Configuration) override
-  {
-    return LibXR::ErrorCode::NOT_SUPPORT;
-  }
-};
-
 static int AcquireBspLock()
 {
   constexpr const char *lock_path = "/tmp/xrobot-autoaim-camera.lock";
@@ -137,11 +121,6 @@ int main(int, char **)
 
   XR_LOG_PASS("Platform initialized");
 
-  LibXR::Pipe pipe_host_tx(1024), pipe_host_rx(1024);
-
-  UartBridge uart_host(&pipe_host_rx.GetReadPort(), &pipe_host_tx.GetWritePort());
-  UartBridge uart_client(&pipe_host_tx.GetReadPort(), &pipe_host_rx.GetWritePort());
-
   LibXR::RamFS ramfs;
   LibXR::Terminal<1024, 64, 16, 128> terminal(ramfs);
 
@@ -154,8 +133,6 @@ int main(int, char **)
   log_topic.RegisterCallback(log_cb);
 
   LibXR::HardwareContainer peripherals{
-      LibXR::Entry<LibXR::UART>({uart_host, {"uart_host"}}),
-      LibXR::Entry<LibXR::UART>({uart_client, {"uart_client"}}),
       LibXR::Entry<LibXR::RamFS>({ramfs, {"ramfs"}}),
       LibXR::Entry<webots::Supervisor>({supervisor, {"supervisor"}})};
 

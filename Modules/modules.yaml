@@ -8,3 +8,5 @@ modules:
 - qdu-future/Aimer
 - qdu-future/VisionPreview
 - qdu-future/WebotsReferee
+- qdu-future/WebotsGimbal
+- qdu-future/WebotsFireNotify

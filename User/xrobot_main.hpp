@@ -3,6 +3,8 @@
 
 // Module headers
 #include "WebotsReferee.hpp"
+#include "WebotsGimbal.hpp"
+#include "WebotsFireNotify.hpp"
 #include "WebotsCamera.hpp"
 #include "CameraSync.hpp"
 #include "CameraFrameSync.hpp"
@@ -17,6 +19,8 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
   // Auto-generated module instantiations
   static WebotsReferee WebotsReferee_0(hw, appmgr, 23.0);
+  static WebotsGimbal WebotsGimbal_0(hw, appmgr);
+  static WebotsFireNotify WebotsFireNotify_0(hw, appmgr, 23.0, 10.0, 240.0, 40.0, 20.0, 30.0, 10);
   static WebotsCamera<ProjectConstexpr::MainCameraInfo> WebotsCamera_0(
       hw,
       appmgr,
