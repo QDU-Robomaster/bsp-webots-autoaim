@@ -77,7 +77,7 @@ Robot {
                               children [
                                 HingeJoint {
                                   jointParameters HingeJointParameters {
-                                    axis 0 1 0
+                                    axis 0 -1 0
                                   }
                                   device [
                                     RotationalMotor {
@@ -199,7 +199,7 @@ Robot {
                               children [
                                 HingeJoint {
                                   jointParameters HingeJointParameters {
-                                    axis 0 1 0
+                                    axis 0 -1 0
                                   }
                                   device [
                                     RotationalMotor {
@@ -243,17 +243,17 @@ Robot {
                                             }
                                             Gyro {
                                               translation 0 0 -0.05
-                                              rotation 0 1 0 1.5707996938995747
+                                              rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
                                               name "camera_gyro"
                                             }
                                             Accelerometer {
                                               translation 0 0 -0.05
-                                              rotation 0 1 0 1.5707996938995747
+                                              rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
                                               name "camera_accelerometer"
                                             }
                                             InertialUnit {
                                               translation 0 0 -0.05
-                                              rotation 0 1 0 1.5707996938995747
+                                              rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
                                               name "camera_inertial_unit"
                                             }
                                             DEF camera Camera {
