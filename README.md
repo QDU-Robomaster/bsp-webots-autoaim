@@ -34,6 +34,8 @@ python3 -m xrobot.GenerateMain --output User/xrobot_main.hpp --config User/xrobo
 ```
 
 `User/xrobot_main.hpp` 是生成文件。
+`ArmorTracker.cfg.extrinsic.camera_to_body` 是 Webots 相机到公开本体系 `B`
+的手眼外参；当前 Webots 默认值保持原 ArmorTracker 内置相机安装关系。
 
 ## Build
 

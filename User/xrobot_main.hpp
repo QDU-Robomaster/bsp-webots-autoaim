@@ -52,7 +52,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
       hw,
       appmgr,
-      {{false, -1, 2, 15, 75, 1}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
+      {{false, -1, 2, 15, 75, 1}, {{{0.7071067811865476, -0.7071067811865475, 0.0, 0.0}, {0.0, 0.0, 0.0}}}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
       CameraFrameSync_0
   );
   static Aimer<ProjectConstexpr::MainCameraInfo> aimer(
