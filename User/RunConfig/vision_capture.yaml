@@ -115,7 +115,7 @@ modules:
           save_images: true
           save_metadata: true
           save_raw_imu: true
-          flush_every_n: 30
+          flush_every_n: 1
         preview:
           enabled: true
           preview_window_name: vision_capture
