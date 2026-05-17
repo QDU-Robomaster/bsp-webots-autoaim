@@ -281,3 +281,6 @@ modules:
           web_port: 8080
           web_stream_name: aimer_preview
           max_fps: 30.0
+        enable_runtime_log: true
+        bullet_speed_log_delta: 0.05
+        heat_log_delta: 1.0
