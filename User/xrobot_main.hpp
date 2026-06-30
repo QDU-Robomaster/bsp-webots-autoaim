@@ -41,12 +41,12 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       hw,
       appmgr,
       WebotsCamera_0,
-      {CameraFrameSync<ProjectConstexpr::MainCameraInfo>::SyncMode::RAW_PROBE, 0, "libxr_def_domain", "camera_sync_command", "camera_sync_result", 3, 1, 50.0F}
+      {CameraFrameSync<ProjectConstexpr::MainCameraInfo>::SyncMode::RAW_PROBE, 0, "libxr_def_domain", "camera_sync_command", "camera_sync_result", 3, 1, 50.0F, CameraFrameSync<ProjectConstexpr::MainCameraInfo>::RawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP, ProjectConstexpr::MainQuatTopicName}
   );
   static ArmorDetector<ProjectConstexpr::MainCameraInfo> ArmorDetector_0(
       hw,
       appmgr,
-      {2, {0.1, true, 16.0, "AUTO_DETECT", "LATENCY"}, false, "host", "robot_game_ref", {false, "armor_detector_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_detector", 30.0}, {true, 0.2, 0.9, true}},
+      {2, {ArmorDetectorModel::INT16_HEAD_L, 0.1, true, 16.0, 0.619, 0.45, 0.1, 128}, false, "host", "robot_game_ref", {false, "armor_detector_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_detector", 30.0}, {true, 0.2, 0.9, true}},
       CameraFrameSync_0
   );
   static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(

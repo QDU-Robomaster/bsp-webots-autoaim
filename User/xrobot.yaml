@@ -124,6 +124,8 @@ modules:
         sync_probe_div: 3
         sync_active_level: 1
         target_trigger_hz: {expr: "50.0F"}
+        raw_imu_frame: {expr: "CameraFrameSync<ProjectConstexpr::MainCameraInfo>::RawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP"}
+        raw_quat_topic_name: {constexpr: MainQuatTopicName}
   - id: ArmorDetector_0
     name: ArmorDetector
     template_args:
@@ -132,11 +134,14 @@ modules:
       cfg:
         detect_color: 2
         network:
+          model: {expr: ArmorDetectorModel::INT16_HEAD_L}
           min_confidence: 0.1
           enable_quad_check: true
           min_quad_area_px: 16.0
-          openvino_device: AUTO_DETECT
-          openvino_performance_mode: LATENCY
+          logit_threshold: 0.619
+          nms_threshold: 0.45
+          bbox_expand: 0.1
+          max_detections: 128
         referee_auto_detect_color: false
         referee_domain: host
         referee_topic: robot_game_ref
