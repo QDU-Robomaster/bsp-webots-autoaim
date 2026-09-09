@@ -1,9 +1,13 @@
 #include <chrono>
 #include <cerrno>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <mutex>
 #include <fcntl.h>
@@ -114,10 +118,40 @@ static int AcquireBspLock()
   return fd;
 }
 
-int main(int, char **)
+int main(int, char**)
 {
+  double sim_flow_rate = 1.0;
+  if (const char* value = std::getenv("WEBOTS_SIM_FLOW_RATE"); value != nullptr)
+  {
+    char* end = nullptr;
+    errno = 0;
+    sim_flow_rate = std::strtod(value, &end);
+    if (errno == ERANGE || end == value || *end != '\0' ||
+        !std::isfinite(sim_flow_rate) || sim_flow_rate <= 0.0)
+    {
+      std::fprintf(stderr,
+                   "Invalid WEBOTS_SIM_FLOW_RATE: expected a finite positive number\n");
+      return 2;
+    }
+  }
+  std::printf("Webots sim_flow_rate=%.9g\n", sim_flow_rate);
+  std::fflush(stdout);
+
   webots::Supervisor supervisor;
-  LibXR::PlatformInit(&supervisor);
+  const double basic_time_step_ms = supervisor.getBasicTimeStep();
+  const double poll_period_ms = std::round(basic_time_step_ms / sim_flow_rate);
+  const double step_interval_ns =
+      std::round(basic_time_step_ms * 1000000.0 / sim_flow_rate);
+  // Check the ranges used by LibXR before its llround and integer conversions.
+  if (!std::isfinite(poll_period_ms) || !std::isfinite(step_interval_ns) ||
+      poll_period_ms > static_cast<double>(std::numeric_limits<uint32_t>::max()) ||
+      step_interval_ns >= static_cast<double>(std::numeric_limits<long long>::max()))
+  {
+    std::fprintf(stderr,
+                 "Invalid WEBOTS_SIM_FLOW_RATE: platform timing interval out of range\n");
+    return 2;
+  }
+  LibXR::PlatformInit(&supervisor, 2, 65536, sim_flow_rate);
 
   const int bsp_lock_fd = AcquireBspLock();
   if (bsp_lock_fd < 0)

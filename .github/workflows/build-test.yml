@@ -77,3 +77,5 @@ jobs:
         -DLIBXR_PRINT_ENABLE_POINTER=ON
     - name: build
       run: cmake --build build
+    - name: Check invalid flow-rate startup arguments
+      run: python3 tests/startup_test.py build/rm_auto_aim

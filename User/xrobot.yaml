@@ -117,12 +117,12 @@ modules:
         referee_domain: host
         referee_topic: robot_game_ref
         preview:
-          enabled: false
+          enabled: true
           preview_window_name: armor_detector_preview
           preview_scale: 0.5
           preview_wait_key_ms: 1
           queue_capacity: 1
-          output_mode: window
+          output_mode: web
           web_bind_address: 0.0.0.0
           web_port: 8080
           web_stream_name: armor_detector
@@ -160,12 +160,12 @@ modules:
             rotation: [1.0, 0.0, 0.0, 0.0]
             translation: [0.0, 0.0, 0.0]
         preview:
-          enabled: false
+          enabled: true
           preview_window_name: armor_tracker_preview
           preview_scale: 0.5
           preview_wait_key_ms: 1
           queue_capacity: 1
-          output_mode: window
+          output_mode: web
           web_bind_address: 0.0.0.0
           web_port: 8080
           web_stream_name: armor_tracker
@@ -208,12 +208,12 @@ modules:
         q_roll_vel: 0.0
         r_roll_acc: 1.0
         preview:
-          enabled: false
+          enabled: true
           preview_window_name: aimer_preview
           preview_scale: 0.5
           preview_wait_key_ms: 1
           queue_capacity: 1
-          output_mode: window
+          output_mode: web
           web_bind_address: 0.0.0.0
           web_port: 8080
           web_stream_name: aimer_preview
