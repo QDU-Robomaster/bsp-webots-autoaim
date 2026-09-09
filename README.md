@@ -1,104 +1,122 @@
 # BSP Webots AutoAim
 
-Webots 仿真自瞄 BSP，基于 `libxr` / `xrobot` 组织工程。
-
-## Layout
+Webots 自瞄 BSP，使用与 Linux/树莓派相同的当前视觉模块接口：
 
 ```text
-Modules/                  模块目录
-User/                     用户配置和生成入口
-webots/                   Webots world / proto / resources
-libxr/                    libxr submodule
-CMakePresets.json         命令行 CMake preset
-.vscode/                  VS Code 配置
-.devcontainer/            Dev Container 配置
-docker/                   Windows Docker 辅助脚本
+WebotsCamera / CameraSync
+    → CameraFrameSync(TRIGGER)
+    → ArmorDetector(OPENVINO_640X512)
+    → ArmorTracker → Aimer
+    → WebotsGimbal / WebotsFireNotify
 ```
 
-## Prepare
+## 配置和依赖
 
-模块和 submodule 由使用者按项目约定初始化。开始构建前确认这些目录已经存在：
+`User/xrobot.yaml` 是配置源。`MainFrameLayout` 只描述 800×600、BGR8、2400-byte step；
+`MainCameraCalibration` 单独描述原生标定。默认 world 的水平视场角为 0.596886 rad，
+对应 fx=fy=1300.258730617794、cx=400、cy=300。图像携带原生逐帧几何和 SharedFrame 所有权。
 
-```text
-libxr/
-Modules/
+Webots 相机每 10 ms 更新渲染图像和每个仿真 step 的 IMU；固定 WIDE 档位与 CameraSync
+使用 20000 us 触发周期，CameraFrameSync 使用当前 STOP/START/FRAME 协议。50 Hz 是仿真时间下的
+触发配置，不是软件渲染环境的墙钟吞吐承诺。
+
+配置显式选择：
+
+```yaml
+network:
+  model: {expr: ArmorDetectorModel::OPENVINO_640X512}
 ```
 
-如果 OpenVINO 不在 CMake 默认搜索路径里，在本机环境中设置 `OpenVINO_DIR`
-或 `CMAKE_PREFIX_PATH`。
+因此 BSP 要求 OpenVINO Runtime；没有对应 SDK/设备/模型时明确失败，不自动换 Hailo 或其他模型。
+`XR_ARMOR_OPENVINO_DEVICE=CPU` 可显式选择 CPU；省略时沿用模型后端的可见设备选择规则。
+Tracker 的 `camera_mount_to_body` 外参和跟踪/弹道参数仍由 YAML 控制。
 
-## Generate
+WebotsReferee 使用 `RefereeTypes::RobotGameRefereePack`，与当前 Aimer 类型完全一致。
+仿真发射器的弹速、热量、射频和 shot event 仍在 `webots_launcher` 主题中；当前 Aimer 使用其
+`default_bullet_speed`，所以默认 YAML 中 Aimer、WebotsReferee、WebotsFireNotify 均设置 23 m/s。
+
+### 模块版本
+
+本 BSP 使用 ArmorDetector、WebotsCamera、WebotsReferee、WebotsGimbal、WebotsFireNotify
+的当前接口，依赖由 `Modules/modules.yaml` 指向各模块 master。更新历史工作目录时，应同时
+核对这些模块的版本；旧模块快照不能与新 YAML 混用。
+
+LibXR 验证版本为 `72e1774ab15f0d613eb403ee6491a752080c5c66`。构建入口仅初始化缺失的
+submodule，不重置已有 checkout，不覆盖本地模块修改。`Modules/modules.yaml` 列出所需依赖，
+包含 DurationStatistics、Referee 和 CMD。模块未准备好时给出缺失清单，不以旧模块替代。
+
+## 生成与构建
+
+环境：C++20、CMake/Ninja、Webots R2025a、OpenCV、OpenVINO、Python xrobot 0.3.1。
+Windows 推荐在 Docker / Dev Container 内运行：
 
 ```bash
-python3 -m xrobot.GenerateMain --output User/xrobot_main.hpp --config User/xrobot.yaml
+bash docker/entrypoints/build.sh
 ```
 
-`User/xrobot_main.hpp` 是生成文件。
-`ArmorTracker.cfg.extrinsic.camera_to_body` 是 Webots 相机到公开本体系 `B`
-的手眼外参；当前 Webots 默认值保持原 ArmorTracker 内置相机安装关系。
+该入口先生成 `User/xrobot_main.hpp` 和 `User/xrobot_constexpr.hpp`，然后构建
+`build/rm_auto_aim`。可通过 `XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 调整输出位置、
+构建类型和并发。已安装的 OpenVINO 路径自动从常规 `/opt/intel` 目录发现，也可设置 `OpenVINO_DIR`。
 
-## Build
+手工命令等价于：
 
 ```bash
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DAUTO_AIM_PREVIEW_IMAGE=ON
-cmake --build build/debug --target rm_auto_aim -j$(nproc)
+python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DOpenVINO_DIR=/opt/intel/openvino_2025.4.0/runtime/cmake
+cmake --build build -j4 --target rm_auto_aim
 ```
 
-## Run
+生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。
 
-有桌面环境时直接打开 Webots world。无头预览可用：
+## 运行实际 world
 
 ```bash
-python3 run_headless_preview.py --repo . --controller build/debug/rm_auto_aim --run-root .vscode-runs --runtime-sec 10
+XR_ARMOR_OPENVINO_DEVICE=CPU \
+LIBGL_ALWAYS_SOFTWARE=1 \
+python3 run_headless_preview.py --controller build/rm_auto_aim \
+  --runtime-sec 40 --sim-flow-rate 0.1 --run-root .vscode-runs
 ```
 
-## VS Code
+或使用同一个入口：
 
-Webots BSP 可在 Dev Container 中使用。
-
-推荐扩展：
-
-- `ms-vscode.cmake-tools`
-- `llvm-vs-code-extensions.vscode-clangd`
-- `webfreak.debug`
-- `xrobot.xrobot`
-
-常用入口：
-
-- `CMake: Select a Kit`
-- `Tasks: Run Task` -> `Build: Webots debug`
-- `Tasks: Run Task` -> `Webots: headless preview 10s`
-- `Tasks: Run Task` -> `Webots: manual extern world`
-- `Run and Debug` -> `Webots: Debug controller (paste extern URL)`
-- `Run and Debug` -> `Webots: Attach to running rm_auto_aim`
-
-## Docker On Windows
-
-首次使用：
-
-```powershell
-.\docker\windows-deploy.ps1
+```bash
+XR_ARMOR_OPENVINO_DEVICE=CPU XR_RUNTIME_SEC=40 \
+bash docker/entrypoints/headless_preview.sh
 ```
 
-运行一次无头预览：
+默认场景是已有的移动、旋转四装甲板车辆；没有替换成实拍贴图输入或直接注入检测结果。
+无头 Webots 使用 Xvfb/XCB，controller 的预览环境可以使用 offscreen。
+软件渲染可低于指定时间流速，日志中的仿真时间与命令的墙钟时长应分别理解。
 
-```powershell
-.\docker\windows-deploy.ps1 -Preview -RuntimeSec 10
+`--runtime-sec` 从 controller 启动开始计算，不包含 world 加载时间。有限时长运行必须有实际
+pipeline 帧、无运行错误且进程未提前退出，才会写 `status=PASS`。崩溃、无帧和连接超时均为失败。
+结束时停止本次启动的进程组；这是有界进程停止，不是模块析构或流水线 drain 测试。
+
+Windows 的现有 `docker/windows-deploy.ps1` 和 Dev Container 仍可作为入口。Docker 镜像增加了
+xauth/Xvfb 运行依赖，Dev Container 初始化不再强制切到历史 LibXR 提交。
+
+## 回归和带目标验收
+
+BSP 配置与 launcher 的快速回归：
+
+```bash
+python3 tests/config_contract_test.py
+python3 tests/launcher_test.py
 ```
 
-离线镜像路径：
+构建只读观测版本，并运行同一 BSP 的目标/空场验收：
 
-```powershell
-.\docker\windows-deploy.ps1 -SkipImageBuild -ImageTar C:\path\to\bsp-webots-autoaim-webots-local.tar
+```bash
+XR_BUILD_ACCEPTANCE=ON bash docker/entrypoints/build.sh
+python3 tests/run_acceptance.py --controller build/rm_auto_aim_acceptance \
+  --run-root .vscode-runs/acceptance --case both --runtime-sec 40
 ```
 
-模块默认由用户在仓库里手动初始化。确实需要 Docker 入口代为初始化时，显式设置
-`XR_FORCE_XROBOT_SETUP=1`。
+每次使用新的 `--run-root`。观测版本不改变模块配置或算法，仅订阅实际 Topic。保存的数据包括
+逐帧身份/时间戳、角点、PnP、tracker、Aimer 命令和裁判摘要，以及真实渲染图和角点叠图。
+空场 fixture 只在独立测试目录中把目标移远、停止目标控制器，原 world 和资源保持不变。
 
-常用 Docker 命令：
-
-```powershell
-docker compose build
-docker compose run --rm --no-build autoaim-build
-docker compose run --rm --no-build autoaim-preview
-```
+验收区分启动前缀、运行期连续帧和停止时在途帧；检查 SharedFrame 身份、时间戳、几何、顺序、
+有限值、角点凸性、PnP 正深度/重投影残差，以及正样本的跟踪与命令和空场的零误触发。
+这些检查证明功能集成，不代替大规模识别精度、世界真值位姿误差、命中率或实机 Hailo 验收。

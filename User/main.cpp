@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <mutex>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <unistd.h>
@@ -20,6 +21,10 @@
 #include "terminal.hpp"
 #include "thread.hpp"
 #include "xrobot_main.hpp"
+
+#if defined(XR_WEBOTS_ACCEPTANCE)
+#include "../tests/WebotsAcceptance.hpp"
+#endif
 
 namespace
 {
@@ -43,14 +48,14 @@ const char *FileLogLevelName(LibXR::LogLevel level)
 }
 }  // namespace
 
-void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::MicrosecondTimestamp,
-                   LibXR::RawData &log_data) =
-    [](bool, LibXR::Topic tp, LibXR::MicrosecondTimestamp timestamp,
-       LibXR::RawData &log_data)
+void (*log_cb_fun)(bool, LibXR::Topic,
+                   const LibXR::Topic::MessageView<LibXR::LogData>&) =
+    [](bool, LibXR::Topic tp,
+       const LibXR::Topic::MessageView<LibXR::LogData>& message)
 {
   UNUSED(tp);
-
-  auto log = reinterpret_cast<LibXR::LogData *>(log_data.addr_);
+  const auto timestamp = message.timestamp;
+  const auto* log = message.data;
   if (log == nullptr)
   {
     return;
@@ -60,6 +65,8 @@ void (*log_cb_fun)(bool in_isr, LibXR::Topic, LibXR::MicrosecondTimestamp,
   {
     using clock = std::chrono::system_clock;
 
+    static std::mutex file_mutex;
+    std::lock_guard<std::mutex> lock(file_mutex);
     static std::ofstream f;
     if (!f.is_open())
     {
@@ -136,6 +143,9 @@ int main(int, char **)
       LibXR::Entry<LibXR::RamFS>({ramfs, {"ramfs"}}),
       LibXR::Entry<webots::Supervisor>({supervisor, {"supervisor"}})};
 
+#if defined(XR_WEBOTS_ACCEPTANCE)
+  WebotsAcceptance::Install();
+#endif
   XRobotMain(peripherals);
 
   while (true)

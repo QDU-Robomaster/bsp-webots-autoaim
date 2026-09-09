@@ -10,3 +10,6 @@ modules:
 - qdu-future/WebotsReferee
 - qdu-future/WebotsGimbal
 - qdu-future/WebotsFireNotify
+- xrobot-org/DurationStatistics
+- qdu-future/Referee
+- qdu-future/CMD

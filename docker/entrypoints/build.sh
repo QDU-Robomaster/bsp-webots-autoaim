@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-repo_root=/workspace
-preview_image="${AUTO_AIM_PREVIEW_IMAGE:-0}"
-
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${repo_root}"
-
-git config --global --add safe.directory "${repo_root}"
-git submodule update --init --recursive
-
-if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" ]]; then
-  xrobot_setup
-elif [[ ! -d "${repo_root}/Modules/ArmorTracker/.git" || ! -d "${repo_root}/Modules/CameraFrameSync/.git" ]]; then
-  cat >&2 <<'EOF'
-Required XRobot modules are not initialized.
-Run xrobot_setup manually in the repository, or set XR_FORCE_XROBOT_SETUP=1 for this Docker run.
-EOF
-  exit 2
-fi
+bash docker/entrypoints/prepare.sh
 
 python3 -m xrobot.GenerateMain --output User/xrobot_main.hpp --config User/xrobot.yaml
-cmake -S . -B build -G Ninja -DAUTO_AIM_PREVIEW_IMAGE="${preview_image}"
-cmake --build build -j"$(nproc)"
+build_dir="${XR_BUILD_DIR:-${repo_root}/build}"
+openvino_dir="${OpenVINO_DIR:-}"
+if [[ -z "${openvino_dir}" ]]; then
+  for candidate in /opt/intel/openvino_2025/runtime/cmake /opt/intel/openvino_*/runtime/cmake; do
+    if [[ -f "${candidate}/OpenVINOConfig.cmake" ]]; then
+      openvino_dir="${candidate}"
+      break
+    fi
+  done
+fi
+cmake_args=(-S "${repo_root}" -B "${build_dir}" -G Ninja
+  -DCMAKE_BUILD_TYPE="${XR_BUILD_TYPE:-Release}"
+  -DAUTO_AIM_PREVIEW_IMAGE="${AUTO_AIM_PREVIEW_IMAGE:-1}"
+  -DAUTO_AIM_BUILD_ACCEPTANCE="${XR_BUILD_ACCEPTANCE:-OFF}")
+if [[ -n "${openvino_dir}" ]]; then
+  cmake_args+=(-DOpenVINO_DIR="${openvino_dir}")
+fi
+cmake "${cmake_args[@]}"
+targets=(rm_auto_aim)
+if [[ "${XR_BUILD_ACCEPTANCE:-OFF}" == "ON" || "${XR_BUILD_ACCEPTANCE:-OFF}" == "1" ]]; then
+  targets+=(rm_auto_aim_acceptance)
+fi
+cmake --build "${build_dir}" -j"${XR_BUILD_JOBS:-4}" --target "${targets[@]}"
