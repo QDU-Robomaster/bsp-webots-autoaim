@@ -71,6 +71,16 @@ class ConfigContractTest(unittest.TestCase):
             self.assertIn('OpenVINO', result.stdout)
             self.assertIn('REQUIRED', result.stdout)
 
+    def test_three_web_previews(self):
+        expected = {'ArmorDetector': 'armor_detector',
+                    'ArmorTracker': 'armor_tracker', 'Aimer': 'aimer_preview'}
+        for name, stream in expected.items():
+            preview = MODULES[name]['constructor_args']['cfg']['preview']
+            self.assertTrue(preview['enabled'], name)
+            self.assertEqual(preview['output_mode'], 'web', name)
+            self.assertEqual(preview['web_port'], 8080, name)
+            self.assertEqual(preview['web_stream_name'], stream, name)
+
     def test_generated_headers_match(self):
         with tempfile.TemporaryDirectory(prefix='webots-codegen-check-') as temporary:
             output = Path(temporary) / 'xrobot_main.hpp'

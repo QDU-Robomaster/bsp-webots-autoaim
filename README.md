@@ -89,12 +89,30 @@ bash docker/entrypoints/headless_preview.sh
 无头 Webots 使用 Xvfb/XCB，controller 的预览环境可以使用 offscreen。
 软件渲染可低于指定时间流速，日志中的仿真时间与命令的墙钟时长应分别理解。
 
+`--sim-flow-rate` 通过 `WEBOTS_SIM_FLOW_RATE` 传给 BSP，启动时打印配置倍率。
+直接运行程序且未设置此变量时默认为 `1.0`；例如 `0.04` 表示目标仿真／墙钟时间比为
+0.04，实际仍受处理能力限制。非法数值会在连接 Webots 前报错；取得 world
+的 `basicTimeStep` 后，还会在平台初始化前检查派生周期是否超出底层整数范围。
+
 `--runtime-sec` 从 controller 启动开始计算，不包含 world 加载时间。有限时长运行必须有实际
 pipeline 帧、无运行错误且进程未提前退出，才会写 `status=PASS`。崩溃、无帧和连接超时均为失败。
 结束时停止本次启动的进程组；这是有界进程停止，不是模块析构或流水线 drain 测试。
 
 Windows 的现有 `docker/windows-deploy.ps1` 和 Dev Container 仍可作为入口。Docker 镜像增加了
 xauth/Xvfb 运行依赖，Dev Container 初始化不再强制切到历史 LibXR 提交。
+
+## 三路 Web 预览
+
+默认开启 Detector、Tracker、Aimer 的 Web 预览，三路共用容器内 `8080` 端口。
+根路径 `/` 是汇总页；单路地址分别为 `/stream/armor_detector`、
+`/stream/armor_tracker`、`/stream/aimer_preview`。预览缩放为0.5，不改变检测输入尺寸。
+在对应模块的 `preview.enabled` 中关闭预览，修改后重新生成并编译。
+
+HTTP 服务没有认证，配置的 `0.0.0.0` 会监听所在网络环境的全部网卡。
+Docker 创建运行容器时可用 `-p 127.0.0.1:18080:8080` 仅向宿主本机开放，
+浏览器访问 `http://127.0.0.1:18080/`。现有容器若未映射端口，需要创建带映射的运行
+容器；不要把内部8080、宿主18080或其他BSP的端口配置混为一谈。
+原生Linux运行时应根据访问范围设置绑定地址／防火墙，不要无保护地暴露到公网。
 
 ## 回归和带目标验收
 
@@ -103,7 +121,12 @@ BSP 配置与 launcher 的快速回归：
 ```bash
 python3 tests/config_contract_test.py
 python3 tests/launcher_test.py
+python3 tests/startup_test.py build/rm_auto_aim
 ```
+
+最后一项使用已构建的真实程序检查非法输入，不需要启动Webots。
+若要同时检查极小倍率导致的周期越界，先启动一个匹配的空闲Webots world，再传
+`--webots-url tcp://<host>:<port>/self`；这两项会连接world读取时间步，但不初始化流水线。
 
 构建只读观测版本，并运行同一 BSP 的目标/空场验收：
 
