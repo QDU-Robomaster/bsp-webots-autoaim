@@ -18,7 +18,7 @@ jobs:
     - name: init submodule
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" && git submodule update --init --recursive
     - name: install pip packages
-      run: pip install xrobot
+      run: pip install xrobot==0.3.1
     - name: get modules && setup
       shell: bash
       run: |
@@ -47,6 +47,11 @@ jobs:
           rm -rf "Modules/${module}"
           git clone --depth=1 --recurse-submodules --branch "${ref}" "${url}" "Modules/${module}"
         done </tmp/xrobot_module_clone_list.tsv
+    - name: Generate and verify the current Webots configuration
+      run: |
+        python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp
+        python3 tests/config_contract_test.py
+        python3 tests/launcher_test.py
     - name: detect OpenVINO
       shell: bash
       run: |

@@ -21,10 +21,11 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
   static WebotsReferee WebotsReferee_0(hw, appmgr, 23.0);
   static WebotsGimbal WebotsGimbal_0(hw, appmgr);
   static WebotsFireNotify WebotsFireNotify_0(hw, appmgr, 23.0, 10.0, 240.0, 40.0, 20.0, 30.0, 10);
-  static WebotsCamera<ProjectConstexpr::MainCameraInfo> WebotsCamera_0(
+  static WebotsCamera<ProjectConstexpr::MainFrameLayout> WebotsCamera_0(
       hw,
       appmgr,
-      {"camera", 100, 0.8, 0.0, "camera", ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName, "libxr_def_domain", "CAMERA", true}
+      ProjectConstexpr::MainCameraCalibration,
+      {"camera", 100, 0.8, 0.0, "camera", ProjectConstexpr::MainImageTopicName, ProjectConstexpr::MainImuTopicName, "libxr_def_domain", "CAMERA", true, 20000}
   );
   static CameraSync CameraSync_0(
       hw,
@@ -32,33 +33,34 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       "CAMERA",
       "camera_sync_result",
       "camera_gyro",
-      3,
+      20000,
       "camera_sync_command"
   );
   static CameraFrameSync<
-      ProjectConstexpr::MainCameraInfo
+      ProjectConstexpr::MainFrameLayout
   > CameraFrameSync_0(
       hw,
       appmgr,
       WebotsCamera_0,
-      {CameraFrameSync<ProjectConstexpr::MainCameraInfo>::SyncMode::RAW_PROBE, 0, "libxr_def_domain", "camera_sync_command", "camera_sync_result", 3, 1, 50.0F, CameraFrameSync<ProjectConstexpr::MainCameraInfo>::RawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP, ProjectConstexpr::MainQuatTopicName}
+      {CameraFrameSyncMode::TRIGGER, 0, "libxr_def_domain", "camera_sync_command", "camera_sync_result", 1, 10000, CameraFrameSyncRawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP, ProjectConstexpr::MainQuatTopicName}
   );
-  static ArmorDetector<ProjectConstexpr::MainCameraInfo> ArmorDetector_0(
+  static ArmorDetector<ProjectConstexpr::MainFrameLayout> ArmorDetector_0(
       hw,
       appmgr,
-      {2, {ArmorDetectorModel::INT16_HEAD_L, 0.1, true, 16.0, 0.619, 0.45, 0.1, 128}, false, "host", "robot_game_ref", {false, "armor_detector_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_detector", 30.0}, {true, 0.2, 0.9, true}},
+      {2, {ArmorDetectorModel::OPENVINO_640X512, 0.1, true, 16.0, 0.619, 0.45, 0.1, 128}, false, "host", "robot_game_ref", {false, "armor_detector_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_detector", 30.0}},
       CameraFrameSync_0
   );
-  static ArmorTracker<ProjectConstexpr::MainCameraInfo> ArmorTracker_0(
+  static ArmorTracker<ProjectConstexpr::MainFrameLayout> ArmorTracker_0(
       hw,
       appmgr,
       {{false, -1, 2, 15, 75, {1.6, 2.0, 1.2, 0.8, 2.0, 8.0, 7.5, 6000.0, 4.0, 8.0, 0.5, 0.55, 0.35, 0.25}}, {{{1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}}, {false, "armor_tracker_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "armor_tracker", 30.0}},
       CameraFrameSync_0
   );
-  static Aimer<ProjectConstexpr::MainCameraInfo> aimer(
+  static Aimer<ProjectConstexpr::MainFrameLayout> aimer(
       hw,
       appmgr,
-      {0.0, 0.0, 2.0, 23.0, 14.0, 0.02, 0.001, 16, -20.0, 35.0, true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015, 0.03, 0.003, 0.05, true, 0.05, 50.0, 9000000.0, 0.0, 1.0, 100.0, 9000000.0, 0.0, 1.0, {false, "aimer_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "aimer_preview", 30.0}, true, 0.05, 1.0}
+      {0.0, 0.0, 2.0, 23.0, 14.0, 0.02, 0.001, 16, -20.0, 35.0, true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015, 0.03, 0.003, 0.05, true, 0.05, 50.0, 9000000.0, 0.0, 1.0, 100.0, 9000000.0, 0.0, 1.0, {false, "aimer_preview", 0.5, 1, 1, "window", "0.0.0.0", 8080, "aimer_preview", 30.0}, true, 0.05, 1.0, false, "robot_game_ref"},
+      ProjectConstexpr::MainCameraCalibration
   );
 
   while (true) {

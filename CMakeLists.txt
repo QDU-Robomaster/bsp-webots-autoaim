@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(rm_auto_aim)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -17,14 +17,19 @@ else()
     add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=0)
 endif()
 
-add_compile_options(-g -O2)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
 
 ## 导出编译命令以便使用 clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # libxr
 set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
-set(WEBOTS_HOME /usr/local/webots)
+set(WEBOTS_HOME /usr/local/webots CACHE PATH "Webots installation")
+set(LIBXR_SYSTEM webots CACHE STRING "LibXR system")
+set(LIBXR_DRIVER webots CACHE STRING "LibXR driver")
+find_package(OpenVINO REQUIRED COMPONENTS Runtime)
 set(LIBXR_LOG_OUTPUT_LEVEL 3)
 set(LIBXR_PRINT_INTEGER_ENABLE_64BIT ON CACHE BOOL "" FORCE)
 set(LIBXR_PRINT_FLOAT_ENABLE_DOUBLE ON CACHE BOOL "" FORCE)
@@ -49,3 +54,11 @@ target_include_directories(
     ${PROJECT_NAME}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/User
 )
+
+option(AUTO_AIM_BUILD_ACCEPTANCE "Build the Webots BSP evidence subscriber" OFF)
+if(AUTO_AIM_BUILD_ACCEPTANCE)
+    add_executable(rm_auto_aim_acceptance User/main.cpp)
+    target_compile_definitions(rm_auto_aim_acceptance PRIVATE XR_WEBOTS_ACCEPTANCE=1)
+    target_include_directories(rm_auto_aim_acceptance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/User)
+    target_link_libraries(rm_auto_aim_acceptance PRIVATE xr)
+endif()
