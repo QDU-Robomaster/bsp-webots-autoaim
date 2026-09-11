@@ -20,7 +20,9 @@
     "editor.suggest.showStatusBar": true,
     "editor.inlayHints.enabled": "offUnlessPressed",
     "cmake.useCMakePresets": "never",
-    "cmake.configureOnOpen": false,
+    "cmake.configureOnOpen": true,
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.generator": "Ninja",
     "cmake.buildDirectory": "${workspaceFolder}/build/debug",
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "Debug",
@@ -78,7 +80,7 @@
             "projectStatusVisibility": "hidden"
         }
     },
-    "cmake.parallelJobs": 24,
+    "cmake.parallelJobs": 0,
     "cmake.ctest.allowParallelJobs": true,
     "cmake.ctest.parallelJobs": 24,
     "cmake.preferredGenerators": [

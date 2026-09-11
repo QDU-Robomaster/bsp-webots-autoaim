@@ -24,6 +24,24 @@ endif()
 ## 导出编译命令以便使用 clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Keep generated XRobot entry headers in sync for both CLI builds and CMake Tools.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(XROBOT_MAIN_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot_main.hpp)
+set(XROBOT_CONSTEXPR_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot_constexpr.hpp)
+add_custom_command(
+    OUTPUT ${XROBOT_MAIN_HEADER} ${XROBOT_CONSTEXPR_HEADER}
+    COMMAND ${Python3_EXECUTABLE} -m xrobot.GenerateMain --output ${XROBOT_MAIN_HEADER}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot.yaml
+        ${CMAKE_CURRENT_SOURCE_DIR}/Modules/modules.yaml
+    COMMENT "Generating XRobot Webots entry headers"
+    VERBATIM
+)
+add_custom_target(xrobot_generate_webots_main
+    DEPENDS ${XROBOT_MAIN_HEADER} ${XROBOT_CONSTEXPR_HEADER}
+)
+
 # libxr
 set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 set(WEBOTS_HOME /usr/local/webots CACHE PATH "Webots installation")
@@ -39,6 +57,7 @@ set_property(TARGET xr PROPERTY CXX_STANDARD 20)
 set_property(TARGET xr PROPERTY CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME} User/main.cpp)
+add_dependencies(${PROJECT_NAME} xrobot_generate_webots_main)
 
 target_link_libraries(
     ${PROJECT_NAME}
@@ -58,6 +77,7 @@ target_include_directories(
 option(AUTO_AIM_BUILD_ACCEPTANCE "Build the Webots BSP evidence subscriber" OFF)
 if(AUTO_AIM_BUILD_ACCEPTANCE)
     add_executable(rm_auto_aim_acceptance User/main.cpp)
+    add_dependencies(rm_auto_aim_acceptance xrobot_generate_webots_main)
     target_compile_definitions(rm_auto_aim_acceptance PRIVATE XR_WEBOTS_ACCEPTANCE=1)
     target_include_directories(rm_auto_aim_acceptance PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/User)
     target_link_libraries(rm_auto_aim_acceptance PRIVATE xr)

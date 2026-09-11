@@ -23,8 +23,10 @@
                 "ms-azuretools.vscode-docker"
             ],
             "settings": {
-                "cmake.configureOnOpen": false,
+                "cmake.configureOnOpen": true,
                 "cmake.useCMakePresets": "never",
+                "cmake.sourceDirectory": "${containerWorkspaceFolder}",
+                "cmake.generator": "Ninja",
                 "cmake.buildDirectory": "${containerWorkspaceFolder}/build/debug",
                 "cmake.configureSettings": {
                     "CMAKE_BUILD_TYPE": "Debug",
@@ -82,7 +84,7 @@
                         "projectStatusVisibility": "hidden"
                     }
                 },
-                "cmake.parallelJobs": 24,
+                "cmake.parallelJobs": 0,
                 "C_Cpp.intelliSenseEngine": "disabled",
                 "C_Cpp.autocomplete": "disabled",
                 "C_Cpp.errorSquiggles": "disabled",
