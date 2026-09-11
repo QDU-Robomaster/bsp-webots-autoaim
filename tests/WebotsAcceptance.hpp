@@ -66,7 +66,8 @@ class Observer
     {
       video_max_frames_ = static_cast<uint64_t>(std::strtoull(max_frames, nullptr, 10));
     }
-    Register();
+    register_thread_.Create(this, RegisterThread, "webots_acceptance", 2048,
+                            LibXR::Thread::Priority::LOW);
   }
 
  private:
@@ -187,6 +188,8 @@ class Observer
     have_tracking_ = true;
   }
 
+  static void RegisterThread(Observer *self) { self->Register(); }
+
   static void Subscribe(LibXR::Topic topic, LibXR::Topic::Callback callback)
   {
     topic.RegisterCallback(callback);
@@ -195,17 +198,17 @@ class Observer
   void Register()
   {
     LibXR::Topic::Domain detector_domain("armor_detector"), tracker_domain("tracker"), host("host");
-    LibXR::Topic synced = LibXR::Topic::FindOrCreate<Sync::SyncedFrameTopicPayload>("camera_image_synced");
+    LibXR::Topic synced(LibXR::Topic::WaitTopic("camera_image_synced"));
     Subscribe(synced, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, Sync::SyncedFrameTopicPayload frame)
         { std::lock_guard<std::mutex> lock(self->mutex_); self->Frame("sync", frame); }, this));
-    LibXR::Topic detector = LibXR::Topic::FindOrCreate<const Detection*>("armors_frame", &detector_domain);
+    LibXR::Topic detector(LibXR::Topic::WaitTopic("armors_frame", UINT32_MAX, &detector_domain));
     Subscribe(detector, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, const Detection* frame) { self->DetectionFrame(frame); }, this));
-    LibXR::Topic tracker = LibXR::Topic::FindOrCreate<const Tracking*>("target_frame", &tracker_domain);
+    LibXR::Topic tracker(LibXR::Topic::WaitTopic("target_frame", UINT32_MAX, &tracker_domain));
     Subscribe(tracker, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, const Tracking* frame) { self->TrackingFrame(frame); }, this));
-    LibXR::Topic command = LibXR::Topic::FindOrCreate<AimerHostGimbalTarget>("target_euler", &host);
+    LibXR::Topic command(LibXR::Topic::WaitTopic("target_euler", UINT32_MAX, &host));
     Subscribe(command, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, LibXR::MicrosecondTimestamp timestamp, const AimerHostGimbalTarget& value)
         {
@@ -220,7 +223,7 @@ class Observer
           self->latest_command_ = value;
           self->have_command_ = true;
         }, this));
-    LibXR::Topic fire = LibXR::Topic::FindOrCreate<AimerHostFireNotify>("fire_notify", &host);
+    LibXR::Topic fire(LibXR::Topic::WaitTopic("fire_notify", UINT32_MAX, &host));
     Subscribe(fire, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, LibXR::MicrosecondTimestamp timestamp, const AimerHostFireNotify& value)
         {
@@ -230,7 +233,7 @@ class Observer
           self->latest_fire_ = value.isfire;
           self->have_fire_ = true;
         }, this));
-    LibXR::Topic referee = LibXR::Topic::FindOrCreate<AimerRefereeSummary>("robot_game_ref", &host);
+    LibXR::Topic referee(LibXR::Topic::WaitTopic("robot_game_ref", UINT32_MAX, &host));
     Subscribe(referee, LibXR::Topic::Callback::Create(
         [](bool, Observer* self, LibXR::MicrosecondTimestamp timestamp, const AimerRefereeSummary& value)
         {
@@ -300,6 +303,7 @@ class Observer
     }
   }
 
+  LibXR::Thread register_thread_{};
   std::filesystem::path root_;
   std::mutex mutex_;
   std::ofstream frames_, detections_, tracking_, commands_, firing_, referee_;
