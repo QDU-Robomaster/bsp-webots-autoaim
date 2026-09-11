@@ -42,19 +42,6 @@ modules:
     name: WebotsReferee
     constructor_args:
       bullet_speed: 23.0
-  - id: WebotsGimbal_0
-    name: WebotsGimbal
-    constructor_args: {}
-  - id: WebotsFireNotify_0
-    name: WebotsFireNotify
-    constructor_args:
-      bullet_speed: 23.0
-      single_shot_heat: 10.0
-      shooter_heat_limit: 240.0
-      shooter_cooling_value: 40.0
-      max_fire_frequency_hz: 20.0
-      fire_delay_ms: 30.0
-      state_publish_period_ms: 10
   - id: WebotsCamera_0
     name: WebotsCamera
     template_args:
@@ -224,3 +211,16 @@ modules:
         convert_raw_gimbal_quat_to_body: false
         referee_topic: robot_game_ref
       calibration: {constexpr: MainCameraCalibration}
+  - id: WebotsGimbal_0
+    name: WebotsGimbal
+    constructor_args: {}
+  - id: WebotsFireNotify_0
+    name: WebotsFireNotify
+    constructor_args:
+      bullet_speed: 23.0
+      single_shot_heat: 10.0
+      shooter_heat_limit: 240.0
+      shooter_cooling_value: 40.0
+      max_fire_frequency_hz: 20.0
+      fire_delay_ms: 30.0
+      state_publish_period_ms: 10

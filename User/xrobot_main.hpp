@@ -3,14 +3,14 @@
 
 // Module headers
 #include "WebotsReferee.hpp"
-#include "WebotsGimbal.hpp"
-#include "WebotsFireNotify.hpp"
 #include "WebotsCamera.hpp"
 #include "CameraSync.hpp"
 #include "CameraFrameSync.hpp"
 #include "ArmorDetector.hpp"
 #include "ArmorTracker.hpp"
 #include "Aimer.hpp"
+#include "WebotsGimbal.hpp"
+#include "WebotsFireNotify.hpp"
 #include "xrobot_constexpr.hpp"
 
 static void XRobotMain(LibXR::HardwareContainer &hw) {
@@ -19,8 +19,6 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
   // Auto-generated module instantiations
   static WebotsReferee WebotsReferee_0(hw, appmgr, 23.0);
-  static WebotsGimbal WebotsGimbal_0(hw, appmgr);
-  static WebotsFireNotify WebotsFireNotify_0(hw, appmgr, 23.0, 10.0, 240.0, 40.0, 20.0, 30.0, 10);
   static WebotsCamera<ProjectConstexpr::MainFrameLayout> WebotsCamera_0(
       hw,
       appmgr,
@@ -62,6 +60,8 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
       {0.0, 0.0, 2.0, 23.0, 14.0, 0.02, 0.001, 16, -20.0, 35.0, true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015, 0.03, 0.003, 0.05, true, 0.05, 50.0, 9000000.0, 0.0, 1.0, 100.0, 9000000.0, 0.0, 1.0, {true, "aimer_preview", 0.5, 1, 1, "web", "0.0.0.0", 8080, "aimer_preview", 30.0}, true, 0.05, 1.0, false, "robot_game_ref"},
       ProjectConstexpr::MainCameraCalibration
   );
+  static WebotsGimbal WebotsGimbal_0(hw, appmgr);
+  static WebotsFireNotify WebotsFireNotify_0(hw, appmgr, 23.0, 10.0, 240.0, 40.0, 20.0, 30.0, 10);
 
   while (true) {
     appmgr.MonitorAll();
