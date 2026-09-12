@@ -45,8 +45,7 @@
                 "build/debug",
                 "--target",
                 "rm_auto_aim",
-                "--parallel",
-                "24"
+                "--parallel"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
