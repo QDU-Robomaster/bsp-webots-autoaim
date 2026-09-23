@@ -1,0 +1,174 @@
+version: 1
+requests:
+- id: QDU-Robomaster/CameraBase
+  ref: same-or-dev
+- id: QDU-Robomaster/WebotsCamera
+  ref: same-or-dev
+- id: QDU-Robomaster/CameraSync
+  ref: same-or-dev
+- id: QDU-Robomaster/CameraFrameSync
+  ref: same-or-dev
+- id: QDU-Robomaster/ArmorDetector
+  ref: same-or-dev
+- id: QDU-Robomaster/ArmorTracker
+  ref: same-or-dev
+- id: QDU-Robomaster/Aimer
+  ref: same-or-dev
+- id: QDU-Robomaster/VisionPreview
+  ref: same-or-dev
+- id: QDU-Robomaster/WebotsReferee
+  ref: same-or-dev
+- id: QDU-Robomaster/WebotsGimbal
+  ref: same-or-dev
+- id: QDU-Robomaster/WebotsFireNotify
+  ref: same-or-dev
+- id: xrobot-org/DurationStatistics
+  ref: same-or-dev
+- id: QDU-Robomaster/Referee
+  ref: same-or-dev
+- id: QDU-Robomaster/CMD
+  ref: same-or-dev
+modules:
+  QDU-Robomaster/Aimer:
+    repo: https://github.com/QDU-Robomaster/Aimer.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: d4d706136655ce667b786e4c2d15e51c67024027
+  QDU-Robomaster/ArmorDetector:
+    repo: https://github.com/QDU-Robomaster/ArmorDetector.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 2f1f1a53aa3826af30f59cf5d03e6abfb722a22f
+  QDU-Robomaster/ArmorTracker:
+    repo: https://github.com/QDU-Robomaster/ArmorTracker.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 635b246cb25f4a2cbf6ecdd09f4311038b37f14d
+  QDU-Robomaster/CMD:
+    repo: https://github.com/QDU-Robomaster/CMD.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 57de95b1dee06953b38eef19b507bdece4d3dd95
+  QDU-Robomaster/CameraBase:
+    repo: https://github.com/QDU-Robomaster/CameraBase.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: cf3bf98bf6a4c7ccb6789c053c1a45f9edf08f7b
+  QDU-Robomaster/CameraFrameSync:
+    repo: https://github.com/QDU-Robomaster/CameraFrameSync.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 9affee2787b83c5bb911243f5e1d9e779486a663
+  QDU-Robomaster/CameraSync:
+    repo: https://github.com/QDU-Robomaster/CameraSync.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 6f467f26911c92a24a5eb925651917ad143ef362
+  QDU-Robomaster/Referee:
+    repo: https://github.com/QDU-Robomaster/Referee.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 02eaf1dc166deb82918a805ae5ce1dba3034bf0d
+  QDU-Robomaster/VisionPreview:
+    repo: https://github.com/QDU-Robomaster/VisionPreview.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: 244eb0adf60ebd921eb55a15b75a9c0e57055ad8
+  QDU-Robomaster/WebotsCamera:
+    repo: https://github.com/QDU-Robomaster/WebotsCamera.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: a98295673e7e349cf55028c041c3d9968865decd
+  QDU-Robomaster/WebotsFireNotify:
+    repo: https://github.com/QDU-Robomaster/WebotsFireNotify.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: b1cea34778f252f94de9b3ad669f2a4c9884e6af
+  QDU-Robomaster/WebotsGimbal:
+    repo: https://github.com/QDU-Robomaster/WebotsGimbal.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: c6014bfdac0590b8f8d1d870b0a6d62b625517f2
+  QDU-Robomaster/WebotsReferee:
+    repo: https://github.com/QDU-Robomaster/WebotsReferee.git
+    source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: fd1c7ac35582f6f2baf001bc8e83ec6740ee7b62
+  xrobot-org/DurationStatistics:
+    repo: https://github.com/xrobot-org/DurationStatistics.git
+    source: https://xrobot.work/xrobot-modules/index.yaml
+    requested: same-or-dev
+    resolved_ref: feat/static-assembly-20260915
+    ref_kind: branch
+    context:
+    - branch
+    - feat/static-assembly-20260915
+    commit: c2807b59f47551af499d4055e6052735c1d0bc2c
+root_context:
+- branch
+- feat/static-assembly-20260915

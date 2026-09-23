@@ -18,11 +18,11 @@
 #include "ArmorTracker.hpp"
 #include "Aimer.hpp"
 #include "WebotsRefereeTypes.hpp"
-#include "xrobot_constexpr.hpp"
+#include "run_config.hpp"
 
 namespace WebotsAcceptance
 {
-constexpr auto layout = ProjectConstexpr::MainFrameLayout;
+constexpr auto layout = AutoAimRunConfig::Webots::MainFrameLayout;
 using Sync = CameraFrameSync<layout>;
 using Detection = DetectedFrame<layout>;
 using Tracking = TrackedFrame<layout>;

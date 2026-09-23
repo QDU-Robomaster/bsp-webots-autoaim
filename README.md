@@ -47,27 +47,28 @@ submodule，不重置已有 checkout，不覆盖本地模块修改。`Modules/mo
 
 ## 生成与构建
 
-环境：C++20、CMake/Ninja、Webots R2025a、OpenCV、OpenVINO、Python xrobot 0.3.1。
+环境：C++20、CMake/Ninja、Webots R2025a、OpenCV、OpenVINO、Python xrobot（静态装配分支）。
 Windows 推荐在 Docker / Dev Container 内运行：
 
 ```bash
 bash docker/entrypoints/build.sh
 ```
 
-该入口先生成 `User/xrobot_main.hpp` 和 `User/xrobot_constexpr.hpp`，然后构建
+该入口先生成 `User/xrobot_main.hpp`，然后构建
 `build/rm_auto_aim`。可通过 `XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 调整输出位置、
 构建类型和并发。已安装的 OpenVINO 路径自动从常规 `/opt/intel` 目录发现，也可设置 `OpenVINO_DIR`。
 
 手工命令等价于：
 
 ```bash
-python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp
+python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp --register-source User/main.cpp --lock xrobot.lock
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DOpenVINO_DIR=/opt/intel/openvino_2025.4.0/runtime/cmake
 cmake --build build -j4 --target rm_auto_aim
 ```
 
-生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。
+生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。配置常量在
+`User/run_config.hpp`（手工维护），YAML 通过 `AutoAimRunConfig::Webots::` 引用。
 
 ## 运行实际 world
 

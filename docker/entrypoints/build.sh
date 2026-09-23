@@ -4,7 +4,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${repo_root}"
 bash docker/entrypoints/prepare.sh
 
-python3 -m xrobot.GenerateMain --output User/xrobot_main.hpp --config User/xrobot.yaml
+python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp --register-source User/main.cpp --lock xrobot.lock
 build_dir="${XR_BUILD_DIR:-${repo_root}/build}"
 openvino_dir="${OpenVINO_DIR:-}"
 if [[ -z "${openvino_dir}" ]]; then

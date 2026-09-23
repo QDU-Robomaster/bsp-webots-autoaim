@@ -1,3 +1,16 @@
-# Automatically include all Modules/*/CMakeLists.txt
+# Generated source list; build with the BSP native CMake entry.
 
-message(STATUS "[XRobot] Scanning module directory: ${CMAKE_CURRENT_LIST_DIR}")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/Aimer/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/ArmorDetector/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/ArmorTracker/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/CMD/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/CameraBase/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/CameraFrameSync/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/CameraSync/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/Referee/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/VisionPreview/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/WebotsCamera/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/WebotsFireNotify/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/WebotsGimbal/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/QDU-Robomaster/WebotsReferee/CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/xrobot-org/DurationStatistics/CMakeLists.txt")

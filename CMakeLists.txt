@@ -27,19 +27,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Keep generated XRobot entry headers in sync for both CLI builds and CMake Tools.
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(XROBOT_MAIN_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot_main.hpp)
-set(XROBOT_CONSTEXPR_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot_constexpr.hpp)
 add_custom_command(
-    OUTPUT ${XROBOT_MAIN_HEADER} ${XROBOT_CONSTEXPR_HEADER}
-    COMMAND ${Python3_EXECUTABLE} -m xrobot.GenerateMain --output ${XROBOT_MAIN_HEADER}
+    OUTPUT ${XROBOT_MAIN_HEADER}
+    COMMAND ${Python3_EXECUTABLE} -m xrobot.GenerateMain
+            --config User/xrobot.yaml --output ${XROBOT_MAIN_HEADER}
+            --register-source User/main.cpp --lock xrobot.lock
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/User/xrobot.yaml
-        ${CMAKE_CURRENT_SOURCE_DIR}/Modules/modules.yaml
-    COMMENT "Generating XRobot Webots entry headers"
+        ${CMAKE_CURRENT_SOURCE_DIR}/User/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/xrobot.lock
+    COMMENT "Generating XRobot Webots entry header"
     VERBATIM
 )
 add_custom_target(xrobot_generate_webots_main
-    DEPENDS ${XROBOT_MAIN_HEADER} ${XROBOT_CONSTEXPR_HEADER}
+    DEPENDS ${XROBOT_MAIN_HEADER}
 )
 
 # libxr

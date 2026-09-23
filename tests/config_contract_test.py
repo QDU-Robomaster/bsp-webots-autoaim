@@ -11,54 +11,67 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 CONFIG = yaml.safe_load((REPO / 'User/xrobot.yaml').read_text(encoding='utf-8'))
-MODULES = {module['name']: module for module in CONFIG['modules']}
+MODULES = {module['module'].split('/')[-1]: module for module in CONFIG['modules']}
+RUN_CONFIG = (REPO / 'User/run_config.hpp').read_text(encoding='utf-8')
+NS = 'AutoAimRunConfig::Webots::'
+
+
+def args(name):
+    """Return one module's ordered named constructor arguments as a mapping."""
+    return {key: value for item in MODULES[name]['args'] for key, value in item.items()}
+
+
+def constant(name):
+    """Return the initializer text of one run_config.hpp constant."""
+    return re.search(r'\b%s = (.*);' % name, RUN_CONFIG).group(1)
 
 
 class ConfigContractTest(unittest.TestCase):
     def test_frame_calibration_and_world(self):
-        layout = CONFIG['constexprs']['MainFrameLayout']['value']
-        calibration = CONFIG['constexprs']['MainCameraCalibration']['value']
-        self.assertEqual(layout, dict(width=800, height=600, step=2400,
-                                      encoding='CameraTypes::Encoding::BGR8'))
-        self.assertEqual((calibration['native_width'], calibration['native_height']), (800, 600))
-        self.assertEqual(calibration['distortion_coefficients'], [0.0] * 5)
+        self.assertEqual(constant('MainFrameLayout'),
+                         '{.width = 800, .height = 600, .step = 2400, '
+                         '.encoding = CameraTypes::Encoding::BGR8}')
+        calibration = constant('MainCameraCalibration')
+        self.assertIn('.native_width = 800, .native_height = 600', calibration)
+        self.assertIn('.distortion_coefficients = {0.0, 0.0, 0.0, 0.0, 0.0}', calibration)
+        matrix = [float(v) for v in re.search(r'\.camera_matrix = \{([^}]*)\}', calibration)
+                  .group(1).split(',')]
         world = (REPO / 'webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt').read_text()
         fov = float(re.search(r'fieldOfView\s+([0-9.]+)', world).group(1))
         expected_focal = 800.0 / (2 * math.tan(fov / 2))
-        self.assertAlmostEqual(calibration['camera_matrix'][0], expected_focal, places=4)
-        self.assertAlmostEqual(calibration['camera_matrix'][4], expected_focal, places=4)
+        self.assertAlmostEqual(matrix[0], expected_focal, places=4)
+        self.assertAlmostEqual(matrix[4], expected_focal, places=4)
         for name in ('WebotsCamera', 'CameraFrameSync', 'ArmorDetector', 'ArmorTracker', 'Aimer'):
-            self.assertEqual(MODULES[name]['template_args'], {'Layout': {'constexpr': 'MainFrameLayout'}})
+            self.assertEqual(MODULES[name]['template_args'], [NS + 'MainFrameLayout'])
         for name in ('WebotsCamera', 'Aimer'):
-            self.assertEqual(MODULES[name]['constructor_args']['calibration'],
-                             {'constexpr': 'MainCameraCalibration'})
+            self.assertEqual(args(name)['calibration'], NS + 'MainCameraCalibration')
 
     def test_explicit_backend_and_trigger(self):
-        detector = MODULES['ArmorDetector']['constructor_args']['cfg']
-        self.assertEqual(detector['network']['model'], {'expr': 'ArmorDetectorModel::OPENVINO_640X512'})
+        detector = args('ArmorDetector')['cfg']
+        self.assertEqual(detector['network']['model'], 'ArmorDetectorModel::OPENVINO_640X512')
         self.assertEqual(detector['network']['logit_threshold'], 0.619)
-        camera = MODULES['WebotsCamera']['constructor_args']['runtime']
+        camera = args('WebotsCamera')['runtime']
         self.assertEqual(camera['fps'], 100)
         self.assertEqual(camera['trigger_period_us'], 20000)
-        self.assertEqual(MODULES['CameraSync']['constructor_args']['trigger_period_us'], 20000)
-        sync = MODULES['CameraFrameSync']['constructor_args']['runtime']
-        self.assertEqual(sync['mode'], {'expr': 'CameraFrameSyncMode::TRIGGER'})
-        self.assertEqual(sync['host_topic_domain_name'], 'libxr_def_domain')
-        self.assertNotIn('sync_probe_div', sync)
+        self.assertEqual(args('CameraSync')['camera_pin'], MODULES['WebotsCamera']['id'])
+        self.assertEqual(args('CameraSync')['param']['trigger_period_us'], 20000)
+        sync = args('CameraFrameSync')['runtime']  # positional RuntimeParam
+        self.assertEqual(sync[0], 'CameraFrameSyncMode::TRIGGER')
+        self.assertEqual(sync[2], '"libxr_def_domain"')
         self.assertNotIn('number_refine', detector)
 
     def test_referee_and_launcher_configuration(self):
-        aim = MODULES['Aimer']['constructor_args']['cfg']
-        self.assertEqual(aim['referee_topic'], 'robot_game_ref')
+        aim = args('Aimer')['cfg']
+        self.assertEqual(aim['referee_topic'], '"robot_game_ref"')
         self.assertEqual(aim['default_bullet_speed'], 23.0)
-        self.assertEqual(MODULES['WebotsReferee']['constructor_args']['bullet_speed'], 23.0)
-        self.assertEqual(MODULES['WebotsFireNotify']['constructor_args']['bullet_speed'], 23.0)
+        self.assertEqual(args('WebotsReferee')['param']['bullet_speed'], 23.0)
+        self.assertEqual(args('WebotsFireNotify')['param']['bullet_speed'], 23.0)
         dependencies = yaml.safe_load((REPO / 'Modules/modules.yaml').read_text())['modules']
-        for dependency in ('xrobot-org/DurationStatistics', 'qdu-future/Referee', 'qdu-future/CMD'):
-            self.assertIn(dependency, dependencies)
-        for path in ('User/main.cpp', 'Modules/WebotsGimbal/WebotsGimbal.hpp',
-                     'Modules/WebotsFireNotify/WebotsFireNotify.hpp',
-                     'Modules/WebotsReferee/WebotsReferee.hpp'):
+        for dependency in ('xrobot-org/DurationStatistics', 'QDU-Robomaster/Referee', 'QDU-Robomaster/CMD'):
+            self.assertIn(dependency + '@same-or-dev', dependencies)
+        for path in ('User/main.cpp', 'Modules/QDU-Robomaster/WebotsGimbal/WebotsGimbal.hpp',
+                     'Modules/QDU-Robomaster/WebotsFireNotify/WebotsFireNotify.hpp',
+                     'Modules/QDU-Robomaster/WebotsReferee/WebotsReferee.hpp'):
             self.assertIsNone(re.search(r'LibXR::RawData\s*&', (REPO / path).read_text(encoding='utf-8')), path)
 
     def test_missing_openvino_is_rejected(self):
@@ -75,22 +88,23 @@ class ConfigContractTest(unittest.TestCase):
         expected = {'ArmorDetector': 'armor_detector',
                     'ArmorTracker': 'armor_tracker', 'Aimer': 'aimer_preview'}
         for name, stream in expected.items():
-            preview = MODULES[name]['constructor_args']['cfg']['preview']
+            preview = args(name)['cfg']['preview']
             self.assertTrue(preview['enabled'], name)
-            self.assertEqual(preview['output_mode'], 'web', name)
+            self.assertEqual(preview['output_mode'], '"web"', name)
             self.assertEqual(preview['web_port'], 8080, name)
-            self.assertEqual(preview['web_stream_name'], stream, name)
+            self.assertEqual(preview['web_stream_name'], '"%s"' % stream, name)
 
     def test_generated_headers_match(self):
         with tempfile.TemporaryDirectory(prefix='webots-codegen-check-') as temporary:
             output = Path(temporary) / 'xrobot_main.hpp'
             result = subprocess.run([sys.executable, '-m', 'xrobot.GenerateMain', '--config',
-                                     'User/xrobot.yaml', '--output', str(output)], cwd=REPO,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
+                                     'User/xrobot.yaml', '--output', str(output),
+                                     '--register-source', 'User/main.cpp', '--lock', 'xrobot.lock'],
+                                    cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                    text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stdout)
-            for name in ('xrobot_main.hpp', 'xrobot_constexpr.hpp'):
-                self.assertEqual((Path(temporary) / name).read_text(encoding='utf-8'),
-                                 (REPO / 'User' / name).read_text(encoding='utf-8'), name)
+            self.assertEqual(output.read_text(encoding='utf-8'),
+                             (REPO / 'User/xrobot_main.hpp').read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':

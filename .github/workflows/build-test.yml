@@ -23,6 +23,8 @@ jobs:
     env:
       CC: ${{ matrix.compiler.cc }}
       CXX: ${{ matrix.compiler.cxx }}
+      XR_REF_NAME: ${{ github.head_ref || github.ref_name }}
+      XROBOT_REF: ${{ vars.XROBOT_REF || '' }}
     container:
       image: ghcr.io/xrobot-org/docker-image-webots:main
       options: --user 0
@@ -31,39 +33,27 @@ jobs:
     - uses: actions/checkout@v4
     - name: init submodule
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" && git submodule update --init --recursive
-    - name: install pip packages
-      run: pip install xrobot==0.3.1
-    - name: get modules && setup
+    - name: Checkout matching XRobot tools
       shell: bash
       run: |
         set -euo pipefail
-        python3 - <<'PY' > /tmp/xrobot_module_clone_list.tsv
-        import yaml
-
-        with open("Modules/modules.yaml", "r", encoding="utf-8") as f:
-            modules = yaml.safe_load(f)["modules"]
-
-        for entry in modules:
-            namespace, rest = entry.split("/", 1)
-            if "@" in rest:
-                module, ref = rest.split("@", 1)
-            else:
-                module, ref = rest, "master"
-            if namespace in {"qdu-future", "qdu-robomaster"}:
-                org = "QDU-Robomaster"
-            elif namespace == "xrobot-org":
-                org = "xrobot-org"
-            else:
-                raise SystemExit(f"unknown module namespace: {namespace}")
-            print(f"{module}\thttps://github.com/{org}/{module}.git\t{ref}")
-        PY
-        while IFS=$'\t' read -r module url ref; do
-          rm -rf "Modules/${module}"
-          git clone --depth=1 --recurse-submodules --branch "${ref}" "${url}" "Modules/${module}"
-        done </tmp/xrobot_module_clone_list.tsv
-    - name: Generate and verify the current Webots configuration
+        selected="${XROBOT_REF:-}"
+        if [[ -z "$selected" ]]; then
+          if [[ -n "$(git ls-remote --heads https://github.com/xrobot-org/XRobot.git "refs/heads/$XR_REF_NAME")" ]]; then
+            selected="refs/heads/$XR_REF_NAME"
+          else
+            selected=refs/heads/dev
+          fi
+        fi
+        git init .ci-tools/XRobot
+        git -C .ci-tools/XRobot remote add origin https://github.com/xrobot-org/XRobot.git
+        git -C .ci-tools/XRobot fetch --depth=1 origin "$selected"
+        git -C .ci-tools/XRobot checkout --detach FETCH_HEAD
+        python3 -m pip install ./.ci-tools/XRobot
+    - name: Resolve configured modules and generate the entry
+      run: xrobot_setup --context-ref "refs/heads/$XR_REF_NAME" --register-source User/main.cpp
+    - name: Verify the current Webots configuration
       run: |
-        python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp
         python3 tests/config_contract_test.py
         python3 tests/launcher_test.py
     - name: detect OpenVINO
