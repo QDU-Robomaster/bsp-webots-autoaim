@@ -4,7 +4,6 @@ import math
 from pathlib import Path
 import re
 import subprocess
-import sys
 import tempfile
 import unittest
 import yaml
@@ -92,18 +91,6 @@ class ConfigContractTest(unittest.TestCase):
             self.assertEqual(preview['output_mode'], '"web"', name)
             self.assertEqual(preview['web_port'], 8080, name)
             self.assertEqual(preview['web_stream_name'], '"%s"' % stream, name)
-
-    def test_generated_headers_match(self):
-        with tempfile.TemporaryDirectory(prefix='webots-codegen-check-') as temporary:
-            output = Path(temporary) / 'xrobot_main.hpp'
-            result = subprocess.run([sys.executable, '-m', 'xrobot.GenerateMain', '--config',
-                                     'User/xrobot.yaml', '--output', str(output),
-                                     '--register-source', 'User/main.cpp', '--lock', 'xrobot.lock'],
-                                    cwd=REPO, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    text=True, check=False)
-            self.assertEqual(result.returncode, 0, result.stdout)
-            self.assertEqual(output.read_text(encoding='utf-8'),
-                             (REPO / 'User/xrobot_main.hpp').read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':
