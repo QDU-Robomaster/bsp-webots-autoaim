@@ -12,8 +12,7 @@ import yaml
 REPO = Path(__file__).resolve().parents[1]
 CONFIG = yaml.safe_load((REPO / 'User/xrobot.yaml').read_text(encoding='utf-8'))
 MODULES = {module['module'].split('/')[-1]: module for module in CONFIG['modules']}
-RUN_CONFIG = (REPO / 'User/run_config.hpp').read_text(encoding='utf-8')
-NS = 'AutoAimRunConfig::Webots::'
+NS = 'AutoAimRunConfig::'
 
 
 def args(name):
@@ -22,8 +21,8 @@ def args(name):
 
 
 def constant(name):
-    """Return the initializer text of one run_config.hpp constant."""
-    return re.search(r'\b%s = (.*);' % name, RUN_CONFIG).group(1)
+    """Return the initializer text of one constexprs entry."""
+    return CONFIG['constexprs'][name]['value']
 
 
 class ConfigContractTest(unittest.TestCase):
@@ -55,10 +54,10 @@ class ConfigContractTest(unittest.TestCase):
         self.assertEqual(camera['trigger_period_us'], 20000)
         self.assertEqual(args('CameraSync')['camera_pin'], MODULES['WebotsCamera']['id'])
         self.assertEqual(args('CameraSync')['param']['trigger_period_us'], 20000)
-        sync = args('CameraFrameSync')['runtime']  # positional RuntimeParam
-        self.assertEqual(sync[0], 'CameraFrameSyncMode::TRIGGER')
-        self.assertEqual(sync[2], '"libxr_def_domain"')
-        self.assertNotIn('number_refine', detector)
+        sync = args('CameraFrameSync')['runtime']  # named RuntimeParam constructor
+        self.assertEqual(sync['mode'], 'CameraFrameSyncMode::TRIGGER')
+        self.assertEqual(sync['host_topic_domain_name'], '"libxr_def_domain"')
+        self.assertEqual(detector['number_refine'], '{}')
 
     def test_referee_and_launcher_configuration(self):
         aim = args('Aimer')['cfg']

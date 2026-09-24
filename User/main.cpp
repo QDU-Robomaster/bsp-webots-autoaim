@@ -23,7 +23,6 @@
 #include "ramfs.hpp"
 #include "terminal.hpp"
 #include "thread.hpp"
-#include "run_config.hpp"
 #include "xrobot_main.hpp"
 
 #if defined(XR_WEBOTS_ACCEPTANCE)

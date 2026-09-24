@@ -1,3 +1,22 @@
+constexpr_namespace: AutoAimRunConfig
+constexpr_includes:
+  - CameraBase.hpp
+constexprs:
+  MainFrameLayout:
+    type: CameraTypes::FrameLayout
+    value: '{.width = 800, .height = 600, .step = 2400, .encoding = CameraTypes::Encoding::BGR8}'
+  MainCameraCalibration:
+    type: CameraTypes::CameraCalibration
+    value: '{.native_width = 800, .native_height = 600, .camera_matrix = {1300.258730617794, 0.0, 400.0, 0.0, 1300.258730617794, 300.0, 0.0, 0.0, 1.0}, .distortion_model = CameraTypes::DistortionModel::PLUMB_BOB, .distortion_coefficients = {0.0, 0.0, 0.0, 0.0, 0.0}, .rectification_matrix = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, .projection_matrix = {1300.258730617794, 0.0, 400.0, 0.0, 0.0, 1300.258730617794, 300.0, 0.0, 0.0, 0.0, 1.0, 0.0}}'
+  MainImageTopicName:
+    type: const char*
+    value: '"camera_image"'
+  MainImuTopicName:
+    type: const char*
+    value: '"camera_imu"'
+  MainQuatTopicName:
+    type: const char*
+    value: '"camera_quat"'
 modules:
   - module: QDU-Robomaster/WebotsReferee
     id: WebotsReferee_0
@@ -14,18 +33,18 @@ modules:
   - module: QDU-Robomaster/WebotsCamera
     id: WebotsCamera_0
     template_args:
-      - 'AutoAimRunConfig::Webots::MainFrameLayout'
+      - 'AutoAimRunConfig::MainFrameLayout'
     args:
       - ramfs: ramfs
-      - calibration: 'AutoAimRunConfig::Webots::MainCameraCalibration'
+      - calibration: 'AutoAimRunConfig::MainCameraCalibration'
       - runtime:
           device_name: '"camera"'
           fps: 100
           exposure: 0.8
           gain: 0.0
           pose_def_name: '"camera"'
-          image_topic_name: 'AutoAimRunConfig::Webots::MainImageTopicName'
-          imu_topic_name: 'AutoAimRunConfig::Webots::MainImuTopicName'
+          image_topic_name: 'AutoAimRunConfig::MainImageTopicName'
+          imu_topic_name: 'AutoAimRunConfig::MainImuTopicName'
           raw_topic_domain_name: '"libxr_def_domain"'
           trigger_active_level: true
           trigger_period_us: 20000
@@ -41,23 +60,24 @@ modules:
   - module: QDU-Robomaster/CameraFrameSync
     id: CameraFrameSync_0
     template_args:
-      - 'AutoAimRunConfig::Webots::MainFrameLayout'
+      - 'AutoAimRunConfig::MainFrameLayout'
     args:
       - camera: WebotsCamera_0
       - runtime:
-          - 'CameraFrameSyncMode::TRIGGER'  # mode
-          - 0 # offset_us
-          - '"libxr_def_domain"' # host_topic_domain_name
-          - '"camera_sync_command"' # sync_command_topic_name
-          - '"camera_sync_result"' # sync_result_topic_name
-          - 1 # sync_active_level
-          - 10000 # camera_settle_us
-          - 'CameraFrameSyncRawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP' # raw_imu_frame
-          - 'AutoAimRunConfig::Webots::MainQuatTopicName' # raw_quat_topic_name
+          mode: 'CameraFrameSyncMode::TRIGGER'
+          offset_us: 0
+          host_topic_domain_name: '"libxr_def_domain"'
+          sync_command_topic_name: '"camera_sync_command"'
+          sync_result_topic_name: '"camera_sync_result"'
+          sync_active_level: 1
+          camera_settle_us: 10000
+          raw_imu_frame: 'CameraFrameSyncRawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP'
+          raw_quat_topic_name: 'AutoAimRunConfig::MainQuatTopicName'
+          synced_frame_topic_name: '{}'
   - module: QDU-Robomaster/ArmorDetector
     id: ArmorDetector_0
     template_args:
-      - 'AutoAimRunConfig::Webots::MainFrameLayout'
+      - 'AutoAimRunConfig::MainFrameLayout'
     args:
       - sync: CameraFrameSync_0
       - cfg:
@@ -85,10 +105,11 @@ modules:
             web_port: 8080
             web_stream_name: '"armor_detector"'
             max_fps: 30.0
+          number_refine: '{}'
   - module: QDU-Robomaster/ArmorTracker
     id: ArmorTracker_0
     template_args:
-      - 'AutoAimRunConfig::Webots::MainFrameLayout'
+      - 'AutoAimRunConfig::MainFrameLayout'
     args:
       - ramfs: ramfs
       - sync: CameraFrameSync_0
@@ -132,7 +153,7 @@ modules:
   - module: QDU-Robomaster/Aimer
     id: aimer
     template_args:
-      - 'AutoAimRunConfig::Webots::MainFrameLayout'
+      - 'AutoAimRunConfig::MainFrameLayout'
     args:
       - cfg:
           yaw_offset: 0.0
@@ -181,7 +202,7 @@ modules:
           heat_log_delta: 1.0
           convert_raw_gimbal_quat_to_body: false
           referee_topic: '"robot_game_ref"'
-      - calibration: 'AutoAimRunConfig::Webots::MainCameraCalibration'
+      - calibration: 'AutoAimRunConfig::MainCameraCalibration'
   - module: QDU-Robomaster/WebotsGimbal
     id: WebotsGimbal_0
     args:

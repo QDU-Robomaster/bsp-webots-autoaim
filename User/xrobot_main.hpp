@@ -1,8 +1,12 @@
 #pragma once
+// xrobot-stamp: config=xrobot.yaml sha256=e508b4adfcc8dcb8db00a32efce2b90fa4af8cddc0d79d2dbb67462508b95b6c
+// xrobot-stamp: lock=../xrobot.lock sha256=0ac8b4606ba1bceedf197abf76e68a717b6bdb8803118fb1235c2d288fe118e8
+// xrobot-stamp: tool=xrobot 0.3.1
 
 #include <memory>
 #include <type_traits>
 #include <utility>
+#include "libxr.hpp"
 #include "thread.hpp"
 #include "WebotsReferee.hpp"
 #include "WebotsCamera.hpp"
@@ -13,6 +17,7 @@
 #include "Aimer.hpp"
 #include "WebotsGimbal.hpp"
 #include "WebotsFireNotify.hpp"
+#include "CameraBase.hpp"
 
 namespace xrobot_generated {
 template <typename...> struct TypeList {};
@@ -21,24 +26,15 @@ struct RegistrationMatches
     : std::bool_constant<(!std::is_reference<Views>::value && ...) &&
                          (std::is_convertible<Source*, Views*>::value && ...)> {};
 
-template <typename> struct MonitorSignature : std::false_type {};
-template <typename T> struct MonitorSignature<void (T::*)()> : std::true_type {};
-template <typename T> struct MonitorSignature<void (T::*)() noexcept> : std::true_type {};
-template <typename T> struct MonitorSignature<void (T::*)() const> : std::true_type {};
-template <typename T> struct MonitorSignature<void (T::*)() const noexcept> : std::true_type {};
-template <typename T> struct MonitorSignature<void (T::*)() &> : std::true_type {};
-template <typename T> struct MonitorSignature<void (T::*)() & noexcept> : std::true_type {};
-template <typename T, typename = void> struct HasMonitor : std::false_type {};
-template <typename T>
-struct HasMonitor<T, std::void_t<decltype(&T::OnMonitor)>>
-    : MonitorSignature<decltype(&T::OnMonitor)> {};
-
-template <typename T> inline void Monitor(T& instance) {
-  if constexpr (HasMonitor<T>::value) {
-    instance.OnMonitor();
-  }
-}
 }  // namespace xrobot_generated
+
+namespace AutoAimRunConfig {
+inline constexpr CameraTypes::FrameLayout MainFrameLayout = {.width = 800, .height = 600, .step = 2400, .encoding = CameraTypes::Encoding::BGR8};
+inline constexpr CameraTypes::CameraCalibration MainCameraCalibration = {.native_width = 800, .native_height = 600, .camera_matrix = {1300.258730617794, 0.0, 400.0, 0.0, 1300.258730617794, 300.0, 0.0, 0.0, 1.0}, .distortion_model = CameraTypes::DistortionModel::PLUMB_BOB, .distortion_coefficients = {0.0, 0.0, 0.0, 0.0, 0.0}, .rectification_matrix = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}, .projection_matrix = {1300.258730617794, 0.0, 400.0, 0.0, 0.0, 1300.258730617794, 300.0, 0.0, 0.0, 0.0, 1.0, 0.0}};
+inline constexpr const char* MainImageTopicName = "camera_image";
+inline constexpr const char* MainImuTopicName = "camera_imu";
+inline constexpr const char* MainQuatTopicName = "camera_quat";
+}  // namespace AutoAimRunConfig
 
 // Force only this entry inline in optimized Clang builds.
 #if defined(__clang__) && defined(__OPTIMIZE__) && !defined(LIBXR_DEBUG_BUILD) && \
@@ -68,17 +64,17 @@ template <typename T> inline void Monitor(T& instance) {
       xr_arg_WebotsReferee_0_param
   );
   // modules[1]: WebotsCamera_0
-  static WebotsCamera<AutoAimRunConfig::Webots::MainFrameLayout> WebotsCamera_0(
+  static WebotsCamera<AutoAimRunConfig::MainFrameLayout> WebotsCamera_0(
       static_cast<LibXR::RamFS&>(ramfs)
-      , AutoAimRunConfig::Webots::MainCameraCalibration
-      , WebotsCamera<AutoAimRunConfig::Webots::MainFrameLayout>::RuntimeParam{
+      , AutoAimRunConfig::MainCameraCalibration
+      , WebotsCamera<AutoAimRunConfig::MainFrameLayout>::RuntimeParam{
 .device_name = "camera"
 , .fps = 100
 , .exposure = 0.8
 , .gain = 0.0
 , .pose_def_name = "camera"
-, .image_topic_name = AutoAimRunConfig::Webots::MainImageTopicName
-, .imu_topic_name = AutoAimRunConfig::Webots::MainImuTopicName
+, .image_topic_name = AutoAimRunConfig::MainImageTopicName
+, .imu_topic_name = AutoAimRunConfig::MainImuTopicName
 , .raw_topic_domain_name = "libxr_def_domain"
 , .trigger_active_level = true
 , .trigger_period_us = 20000
@@ -98,24 +94,25 @@ template <typename T> inline void Monitor(T& instance) {
       , xr_arg_CameraSync_0_param
   );
   // modules[3]: CameraFrameSync_0
-  static CameraFrameSync<AutoAimRunConfig::Webots::MainFrameLayout> CameraFrameSync_0(
-      static_cast<CameraFrameSync<AutoAimRunConfig::Webots::MainFrameLayout>::Base&>(WebotsCamera_0)
-      , CameraFrameSync<AutoAimRunConfig::Webots::MainFrameLayout>::RuntimeParam{
-CameraFrameSyncMode::TRIGGER
-, 0
-, "libxr_def_domain"
-, "camera_sync_command"
-, "camera_sync_result"
-, 1
-, 10000
-, CameraFrameSyncRawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP
-, AutoAimRunConfig::Webots::MainQuatTopicName
-}
+  static CameraFrameSync<AutoAimRunConfig::MainFrameLayout> CameraFrameSync_0(
+      static_cast<CameraFrameSync<AutoAimRunConfig::MainFrameLayout>::Base&>(WebotsCamera_0)
+      , CameraFrameSync<AutoAimRunConfig::MainFrameLayout>::RuntimeParam(
+static_cast<CameraFrameSync<AutoAimRunConfig::MainFrameLayout>::SyncMode>(CameraFrameSyncMode::TRIGGER)
+, static_cast<int32_t>(0)
+, static_cast<std::string_view>("libxr_def_domain")
+, static_cast<std::string_view>("camera_sync_command")
+, static_cast<std::string_view>("camera_sync_result")
+, static_cast<uint32_t>(1)
+, static_cast<uint64_t>(10000)
+, static_cast<CameraFrameSync<AutoAimRunConfig::MainFrameLayout>::RawImuFrame>(CameraFrameSyncRawImuFrame::BODY_X_RIGHT_Y_FORWARD_Z_UP)
+, static_cast<std::string_view>(AutoAimRunConfig::MainQuatTopicName)
+, static_cast<std::string_view>({})
+)
   );
   // modules[4]: ArmorDetector_0
-  static ArmorDetector<AutoAimRunConfig::Webots::MainFrameLayout> ArmorDetector_0(
-      static_cast<ArmorDetector<AutoAimRunConfig::Webots::MainFrameLayout>::Sync&>(CameraFrameSync_0)
-      , ArmorDetector<AutoAimRunConfig::Webots::MainFrameLayout>::Config{
+  static ArmorDetector<AutoAimRunConfig::MainFrameLayout> ArmorDetector_0(
+      static_cast<ArmorDetector<AutoAimRunConfig::MainFrameLayout>::Sync&>(CameraFrameSync_0)
+      , ArmorDetector<AutoAimRunConfig::MainFrameLayout>::Config{
 .detect_color = 2
 , .network = {
 .model = ArmorDetectorModel::OPENVINO_640X512
@@ -142,13 +139,14 @@ CameraFrameSyncMode::TRIGGER
 , .web_stream_name = "armor_detector"
 , .max_fps = 30.0
 }
+, .number_refine = {}
 }
   );
   // modules[5]: ArmorTracker_0
-  static ArmorTracker<AutoAimRunConfig::Webots::MainFrameLayout> ArmorTracker_0(
+  static ArmorTracker<AutoAimRunConfig::MainFrameLayout> ArmorTracker_0(
       static_cast<LibXR::RamFS&>(ramfs)
-      , static_cast<ArmorTracker<AutoAimRunConfig::Webots::MainFrameLayout>::FrameSync&>(CameraFrameSync_0)
-      , ArmorTracker<AutoAimRunConfig::Webots::MainFrameLayout>::Config{
+      , static_cast<ArmorTracker<AutoAimRunConfig::MainFrameLayout>::FrameSync&>(CameraFrameSync_0)
+      , ArmorTracker<AutoAimRunConfig::MainFrameLayout>::Config{
 .tracker = {
 .require_target_tag = false
 , .target_tag_id = -1
@@ -202,8 +200,8 @@ CameraFrameSyncMode::TRIGGER
 }
   );
   // modules[6]: aimer
-  static Aimer<AutoAimRunConfig::Webots::MainFrameLayout> aimer(
-      Aimer<AutoAimRunConfig::Webots::MainFrameLayout>::Config{
+  static Aimer<AutoAimRunConfig::MainFrameLayout> aimer(
+      Aimer<AutoAimRunConfig::MainFrameLayout>::Config{
 .yaw_offset = 0.0
 , .roll_offset = 0.0
 , .yaw_rate_threshold = 2.0
@@ -252,7 +250,7 @@ CameraFrameSyncMode::TRIGGER
 , .convert_raw_gimbal_quat_to_body = false
 , .referee_topic = "robot_game_ref"
 }
-      , AutoAimRunConfig::Webots::MainCameraCalibration
+      , AutoAimRunConfig::MainCameraCalibration
   );
   static const WebotsGimbal::Param& xr_arg_WebotsGimbal_0_param =
       {
@@ -287,16 +285,25 @@ CameraFrameSyncMode::TRIGGER
   static WebotsFireNotify WebotsFireNotify_0(
       xr_arg_WebotsFireNotify_0_param
   );
+  static_assert(std::is_void_v<decltype(WebotsReferee_0.OnMonitor())>, "WebotsReferee_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(WebotsCamera_0.OnMonitor())>, "WebotsCamera_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(CameraSync_0.OnMonitor())>, "CameraSync_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(CameraFrameSync_0.OnMonitor())>, "CameraFrameSync_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(ArmorDetector_0.OnMonitor())>, "ArmorDetector_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(ArmorTracker_0.OnMonitor())>, "ArmorTracker_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(aimer.OnMonitor())>, "aimer.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(WebotsGimbal_0.OnMonitor())>, "WebotsGimbal_0.OnMonitor() must return void");
+  static_assert(std::is_void_v<decltype(WebotsFireNotify_0.OnMonitor())>, "WebotsFireNotify_0.OnMonitor() must return void");
   for (;;) {
-    ::xrobot_generated::Monitor(WebotsReferee_0);
-    ::xrobot_generated::Monitor(WebotsCamera_0);
-    ::xrobot_generated::Monitor(CameraSync_0);
-    ::xrobot_generated::Monitor(CameraFrameSync_0);
-    ::xrobot_generated::Monitor(ArmorDetector_0);
-    ::xrobot_generated::Monitor(ArmorTracker_0);
-    ::xrobot_generated::Monitor(aimer);
-    ::xrobot_generated::Monitor(WebotsGimbal_0);
-    ::xrobot_generated::Monitor(WebotsFireNotify_0);
+    WebotsReferee_0.OnMonitor();
+    WebotsCamera_0.OnMonitor();
+    CameraSync_0.OnMonitor();
+    CameraFrameSync_0.OnMonitor();
+    ArmorDetector_0.OnMonitor();
+    ArmorTracker_0.OnMonitor();
+    aimer.OnMonitor();
+    WebotsGimbal_0.OnMonitor();
+    WebotsFireNotify_0.OnMonitor();
     LibXR::Thread::Sleep(1000);
   }
 }

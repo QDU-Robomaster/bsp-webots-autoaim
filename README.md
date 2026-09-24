@@ -67,8 +67,8 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
 cmake --build build -j4 --target rm_auto_aim
 ```
 
-生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。配置常量在
-`User/run_config.hpp`（手工维护），YAML 通过 `AutoAimRunConfig::Webots::` 引用。
+生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。配置常量写在
+`User/xrobot.yaml` 的 `constexprs` 段，生成到 `xrobot_main.hpp` 的 `AutoAimRunConfig` 命名空间。
 
 ## 运行实际 world
 
