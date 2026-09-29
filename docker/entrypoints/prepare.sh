@@ -14,7 +14,7 @@ if ! git -C libxr rev-parse --verify HEAD >/dev/null 2>&1; then
 fi
 
 if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" ]]; then
-  xrobot_setup --register-source User/main.cpp
+  xrobot setup
 fi
 python3 - <<'PY'
 from pathlib import Path

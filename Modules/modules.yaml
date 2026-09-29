@@ -1,3 +1,4 @@
+xrobot: 1.0.0
 modules:
 - QDU-Robomaster/CameraBase@same-or-dev
 - QDU-Robomaster/WebotsCamera@same-or-dev

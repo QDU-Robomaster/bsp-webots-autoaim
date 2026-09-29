@@ -47,27 +47,28 @@ submodule，不重置已有 checkout，不覆盖本地模块修改。`Modules/mo
 
 ## 生成与构建
 
-环境：C++20、CMake/Ninja、Webots R2025a、OpenCV、OpenVINO、Python xrobot（静态装配分支）。
+环境：C++20、CMake/Ninja、Webots R2025a、OpenCV、OpenVINO、Python xrobot（版本与 `Modules/modules.yaml` 的 `xrobot:` 一致）。
 Windows 推荐在 Docker / Dev Container 内运行：
 
 ```bash
 bash docker/entrypoints/build.sh
 ```
 
-该入口先生成 `User/xrobot_main.hpp`，然后构建
+该入口先运行 `xrobot gen` 生成 `User/xrobot_main.hpp`，然后构建
 `build/rm_auto_aim`。可通过 `XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 调整输出位置、
 构建类型和并发。已安装的 OpenVINO 路径自动从常规 `/opt/intel` 目录发现，也可设置 `OpenVINO_DIR`。
 
 手工命令等价于：
 
 ```bash
-python3 -m xrobot.GenerateMain --config User/xrobot.yaml --output User/xrobot_main.hpp --register-source User/main.cpp --lock xrobot.lock
+xrobot setup
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DOpenVINO_DIR=/opt/intel/openvino_2025.4.0/runtime/cmake
 cmake --build build -j4 --target rm_auto_aim
 ```
 
-生成头文件是受版本控制的输出；配置修改后应重新生成，不能只手工改头文件。配置常量写在
+`User/xrobot_main.hpp` 和 `Modules/CMakeLists.txt` 由 `xrobot` 生成，不提交；配置或模块改动后构建会提示重新运行
+`xrobot gen`。配置常量写在
 `User/xrobot.yaml` 的 `constexprs` 段，生成到 `xrobot_main.hpp` 的 `AutoAimRunConfig` 命名空间。
 
 ## 运行实际 world
@@ -128,19 +129,3 @@ python3 tests/startup_test.py build/rm_auto_aim
 最后一项使用已构建的真实程序检查非法输入，不需要启动Webots。
 若要同时检查极小倍率导致的周期越界，先启动一个匹配的空闲Webots world，再传
 `--webots-url tcp://<host>:<port>/self`；这两项会连接world读取时间步，但不初始化流水线。
-
-构建只读观测版本，并运行同一 BSP 的目标/空场验收：
-
-```bash
-XR_BUILD_ACCEPTANCE=ON bash docker/entrypoints/build.sh
-python3 tests/run_acceptance.py --controller build/rm_auto_aim_acceptance \
-  --run-root .vscode-runs/acceptance --case both --runtime-sec 40
-```
-
-每次使用新的 `--run-root`。观测版本不改变模块配置或算法，仅订阅实际 Topic。保存的数据包括
-逐帧身份/时间戳、角点、PnP、tracker、Aimer 命令和裁判摘要，以及真实渲染图和角点叠图。
-空场 fixture 只在独立测试目录中把目标移远、停止目标控制器，原 world 和资源保持不变。
-
-验收区分启动前缀、运行期连续帧和停止时在途帧；检查 SharedFrame 身份、时间戳、几何、顺序、
-有限值、角点凸性、PnP 正深度/重投影残差，以及正样本的跟踪与命令和空场的零误触发。
-这些检查证明功能集成，不代替大规模识别精度、世界真值位姿误差、命中率或实机 Hailo 验收。
