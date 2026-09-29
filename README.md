@@ -24,7 +24,7 @@ Webots 相机每 10 ms 更新渲染图像和每个仿真 step 的 IMU；固定 W
 
 ```yaml
 network:
-  model: {expr: ArmorDetectorModel::OPENVINO_640X512}
+  model: 'ArmorDetectorModel::OPENVINO_640X512'
 ```
 
 因此 BSP 要求 OpenVINO Runtime；没有对应 SDK/设备/模型时明确失败，不自动换 Hailo 或其他模型。
@@ -38,10 +38,10 @@ WebotsReferee 使用 `RefereeTypes::RobotGameRefereePack`，与当前 Aimer 类�
 ### 模块版本
 
 本 BSP 使用 ArmorDetector、WebotsCamera、WebotsReferee、WebotsGimbal、WebotsFireNotify
-的当前接口，依赖由 `Modules/modules.yaml` 指向各模块 master。更新历史工作目录时，应同时
-核对这些模块的版本；旧模块快照不能与新 YAML 混用。
+的当前接口。`Modules/modules.yaml` 以 `same-or-dev` 请求各模块，`xrobot.lock` 锁定精确 commit；
+用 `xrobot setup --update` 更新。旧模块快照不能与新 YAML 混用。
 
-LibXR 验证版本为 `72e1774ab15f0d613eb403ee6491a752080c5c66`。构建入口仅初始化缺失的
+LibXR 版本由 `libxr` submodule 固定。构建入口仅初始化缺失的
 submodule，不重置已有 checkout，不覆盖本地模块修改。`Modules/modules.yaml` 列出所需依赖，
 包含 DurationStatistics、Referee 和 CMD。模块未准备好时给出缺失清单，不以旧模块替代。
 
