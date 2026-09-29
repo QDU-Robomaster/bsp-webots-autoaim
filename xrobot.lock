@@ -119,7 +119,7 @@ modules:
     requested: same-or-dev
     resolved_ref: feat/static-assembly-20260915
     ref_kind: branch
-    commit: 733bc1e9c59f0f73623f8456d468742484927754
+    commit: 19d31503dc2cc1ea82a2dbf6e452a0244ec0b307
   xrobot-org/DurationStatistics:
     repo: https://github.com/xrobot-org/DurationStatistics.git
     source: https://xrobot.work/xrobot-modules/index.yaml

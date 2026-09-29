@@ -30,6 +30,7 @@ modules:
           max_hp: '200'
           chassis_power_limit: '45'
           publish_period_ms: '100'
+          referee_robot_game_tp_name: '"robot_game_ref"'
   - module: QDU-Robomaster/WebotsCamera
     id: WebotsCamera_0
     template_args:
