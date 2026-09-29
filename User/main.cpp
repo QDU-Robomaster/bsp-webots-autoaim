@@ -25,10 +25,6 @@
 #include "thread.hpp"
 #include "xrobot_main.hpp"
 
-#if defined(XR_WEBOTS_ACCEPTANCE)
-#include "../tests/WebotsAcceptance.hpp"
-#endif
-
 namespace
 {
 const char *FileLogLevelName(LibXR::LogLevel level)
@@ -172,9 +168,6 @@ int main(int, char**)
   auto log_cb = LibXR::Topic::Callback::Create(log_cb_fun, log_topic);
   log_topic.RegisterCallback(log_cb);
 
-#if defined(XR_WEBOTS_ACCEPTANCE)
-  WebotsAcceptance::Install();
-#endif
   XR_REGISTER(ramfs, LibXR::RamFS);
   XROBOT_MAIN();
 }
