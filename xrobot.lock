@@ -98,7 +98,7 @@ modules:
     requested: same-or-dev
     resolved_ref: feat/static-assembly-20260915
     ref_kind: branch
-    commit: 3596684537a5648fd63dfc672430ccc43a543803
+    commit: e7f441ae791094de38b06b491086219feed694c3
   QDU-Robomaster/WebotsFireNotify:
     repo: https://github.com/QDU-Robomaster/WebotsFireNotify.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
