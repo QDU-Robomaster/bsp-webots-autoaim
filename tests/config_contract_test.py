@@ -55,12 +55,12 @@ class ConfigContractTest(unittest.TestCase):
         self.assertEqual(args('CameraSync')['param']['trigger_period_us'], 20000)
         sync = args('CameraFrameSync')['runtime']  # named RuntimeParam constructor
         self.assertEqual(sync['mode'], 'CameraFrameSyncMode::TRIGGER')
-        self.assertEqual(sync['host_topic_domain_name'], '"libxr_def_domain"')
+        self.assertEqual(sync['host_topic_domain_name'], 'libxr_def_domain')
         self.assertEqual(detector['number_refine'], '{}')
 
     def test_referee_and_launcher_configuration(self):
         aim = args('Aimer')['cfg']
-        self.assertEqual(aim['referee_topic'], '"robot_game_ref"')
+        self.assertEqual(aim['referee_topic'], 'robot_game_ref')
         self.assertEqual(aim['default_bullet_speed'], 23.0)
         self.assertEqual(args('WebotsReferee')['param']['bullet_speed'], 23.0)
         self.assertEqual(args('WebotsFireNotify')['param']['bullet_speed'], 23.0)
@@ -88,9 +88,9 @@ class ConfigContractTest(unittest.TestCase):
         for name, stream in expected.items():
             preview = args(name)['cfg']['preview']
             self.assertTrue(preview['enabled'], name)
-            self.assertEqual(preview['output_mode'], '"web"', name)
+            self.assertEqual(preview['output_mode'], 'web', name)
             self.assertEqual(preview['web_port'], 8080, name)
-            self.assertEqual(preview['web_stream_name'], '"%s"' % stream, name)
+            self.assertEqual(preview['web_stream_name'], stream, name)
 
 
 if __name__ == '__main__':
