@@ -75,7 +75,7 @@ void (*log_cb_fun)(bool, LibXR::Topic,
       localtime_r(&t, &tm);
 
       std::ostringstream oss;
-      // 首次打开时按启动时间命名：YYYYMMDD_HHMMSS.log
+      // The file is named after the first log time: YYYYMMDD_HHMMSS.log
       oss << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".log";
       f.open(oss.str(), std::ios::out | std::ios::app);
 
