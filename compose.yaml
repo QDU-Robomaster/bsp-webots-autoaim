@@ -4,7 +4,8 @@ services:
   autoaim-build:
     image: bsp-webots-autoaim-webots:local
     build:
-      context: ./docker
+      context: .
+      dockerfile: docker/Dockerfile
     working_dir: /workspace
     environment:
       WEBOTS_HOME: /usr/local/webots
@@ -17,7 +18,8 @@ services:
   autoaim-preview:
     image: bsp-webots-autoaim-webots:local
     build:
-      context: ./docker
+      context: .
+      dockerfile: docker/Dockerfile
     working_dir: /workspace
     environment:
       WEBOTS_HOME: /usr/local/webots

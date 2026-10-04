@@ -2,14 +2,11 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "XRobot: generate Webots main",
+            "label": "XRobot: setup",
             "type": "shell",
-            "command": "python3",
+            "command": "xrobot",
             "args": [
-                "-m",
-                "xrobot.GenerateMain",
-                "--output",
-                "User/xrobot_main.hpp"
+                "setup"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -57,7 +54,7 @@
             "label": "Build: Webots debug",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "XRobot: generate Webots main",
+                "XRobot: setup",
                 "CMake: configure Webots debug",
                 "CMake: build Webots debug"
             ],

@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <webots/Supervisor.hpp>
 
-#include "app_framework.hpp"
 #include "libxr.hpp"
 #include "libxr_def.hpp"
 #include "libxr_system.hpp"
@@ -25,10 +24,6 @@
 #include "terminal.hpp"
 #include "thread.hpp"
 #include "xrobot_main.hpp"
-
-#if defined(XR_WEBOTS_ACCEPTANCE)
-#include "../tests/WebotsAcceptance.hpp"
-#endif
 
 namespace
 {
@@ -80,7 +75,7 @@ void (*log_cb_fun)(bool, LibXR::Topic,
       localtime_r(&t, &tm);
 
       std::ostringstream oss;
-      // 首次打开时按启动时间命名：YYYYMMDD_HHMMSS.log
+      // The file is named after the first log time: YYYYMMDD_HHMMSS.log
       oss << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".log";
       f.open(oss.str(), std::ios::out | std::ios::app);
 
@@ -162,7 +157,7 @@ int main(int, char**)
 
   XR_LOG_PASS("Platform initialized");
 
-  LibXR::RamFS ramfs;
+  static LibXR::RamFS ramfs;
   LibXR::Terminal<1024, 64, 16, 128> terminal(ramfs);
 
   LibXR::Thread term_thread;
@@ -173,18 +168,6 @@ int main(int, char**)
   auto log_cb = LibXR::Topic::Callback::Create(log_cb_fun, log_topic);
   log_topic.RegisterCallback(log_cb);
 
-  LibXR::HardwareContainer peripherals{
-      LibXR::Entry<LibXR::RamFS>({ramfs, {"ramfs"}}),
-      LibXR::Entry<webots::Supervisor>({supervisor, {"supervisor"}})};
-
-#if defined(XR_WEBOTS_ACCEPTANCE)
-  WebotsAcceptance::Install();
-#endif
-  XRobotMain(peripherals);
-
-  while (true)
-  {
-    LibXR::Thread::Sleep(1000);
-  }
-  return 0;
+  XR_REGISTER(ramfs, LibXR::RamFS);
+  XROBOT_MAIN();
 }

@@ -13,8 +13,20 @@ if ! git -C libxr rev-parse --verify HEAD >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" ]]; then
-  xrobot_setup
+# Modules/CMakeLists.txt and the Module checkouts are ignored by Git, so a fresh clone has
+# none of them; xrobot setup checks the Modules out at the commits in xrobot.lock. Existing
+# checkouts, including ones with local changes, are left alone.
+missing_locked="$(python3 - <<'PY'
+from pathlib import Path
+import yaml
+
+lock = yaml.safe_load(Path("xrobot.lock").read_text(encoding="utf-8")) or {}
+print(" ".join(identity for identity in lock.get("modules") or {}
+               if not (Path("Modules") / identity / "CMakeLists.txt").is_file()))
+PY
+)"
+if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" || ! -f Modules/CMakeLists.txt || -n "${missing_locked}" ]]; then
+  xrobot setup
 fi
 python3 - <<'PY'
 from pathlib import Path
@@ -23,8 +35,9 @@ import yaml
 config = yaml.safe_load(Path("Modules/modules.yaml").read_text(encoding="utf-8"))
 missing = []
 for entry in config["modules"]:
-    name = entry.split("/", 1)[1].split("@", 1)[0]
-    if not (Path("Modules") / name / "CMakeLists.txt").is_file():
+    owner, rest = entry.split("/", 1)
+    name = rest.split("@", 1)[0]
+    if not (Path("Modules") / owner / name / "CMakeLists.txt").is_file():
         missing.append(name)
 if missing:
     raise SystemExit("Missing modules: " + ", ".join(missing) +

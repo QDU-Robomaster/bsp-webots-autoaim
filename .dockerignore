@@ -1,0 +1,3 @@
+# Only Modules/modules.yaml is needed to build the image (the XRobot pin).
+*
+!Modules/modules.yaml
