@@ -13,7 +13,19 @@ if ! git -C libxr rev-parse --verify HEAD >/dev/null 2>&1; then
   exit 2
 fi
 
-if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" ]]; then
+# Modules/CMakeLists.txt and the Module checkouts are ignored by Git, so a fresh clone has
+# none of them; xrobot setup checks the Modules out at the commits in xrobot.lock. Existing
+# checkouts, including ones with local changes, are left alone.
+missing_locked="$(python3 - <<'PY'
+from pathlib import Path
+import yaml
+
+lock = yaml.safe_load(Path("xrobot.lock").read_text(encoding="utf-8")) or {}
+print(" ".join(identity for identity in lock.get("modules") or {}
+               if not (Path("Modules") / identity / "CMakeLists.txt").is_file()))
+PY
+)"
+if [[ "${XR_FORCE_XROBOT_SETUP:-0}" == "1" || ! -f Modules/CMakeLists.txt || -n "${missing_locked}" ]]; then
   xrobot setup
 fi
 python3 - <<'PY'
