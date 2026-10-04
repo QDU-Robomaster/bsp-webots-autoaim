@@ -36,95 +36,95 @@ modules:
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 526c46c2cc5dfc257cd5d8e394df3888e610a572
+    commit: ec936518c35c68876a54a1b04af21f4e5c8f5c6c
   QDU-Robomaster/ArmorDetector:
     repo: https://github.com/QDU-Robomaster/ArmorDetector.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 487e3c0ad5cbd93e85e93efcf6404a02c3f6e13e
+    commit: a545fd983c7d9777d92419f623a98c763bf955cc
   QDU-Robomaster/ArmorTracker:
     repo: https://github.com/QDU-Robomaster/ArmorTracker.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 6e4247a16443329a64398c094a2dfe2b668a1dd2
+    commit: 36e1fd5992dd6cc72d9fa7fa5e9a3ac3b55056c1
   QDU-Robomaster/CMD:
     repo: https://github.com/QDU-Robomaster/CMD.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: de75d238def422100da5ff588c3d13c261efe0a6
+    commit: e960a30e80aec80a80495a39c2ad05ddc366a97b
   QDU-Robomaster/CameraBase:
     repo: https://github.com/QDU-Robomaster/CameraBase.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 27627f48e5061c9c7cfe52f85353add6dee56bf4
+    commit: 1f5305e432a62e4e73841a046d057e37a6ee6941
   QDU-Robomaster/CameraFrameSync:
     repo: https://github.com/QDU-Robomaster/CameraFrameSync.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 208e8171178e0aee73e63ca685c38ab47ea977fd
+    commit: a0f07ae0ad51a8d0ebd48ed1107a865071aca5c6
   QDU-Robomaster/CameraSync:
     repo: https://github.com/QDU-Robomaster/CameraSync.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 55070a63ce07b190efd2a2419b6fb8b142cae2e7
+    commit: b5f59ad93869a22d44f1614eafb9342de69727e6
   QDU-Robomaster/Referee:
     repo: https://github.com/QDU-Robomaster/Referee.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 8d3fb4f22bb2740d9d30375b9c9719e9d747ef36
+    commit: 96b2468ea414b5837a0c452cece792247a76b210
   QDU-Robomaster/VisionPreview:
     repo: https://github.com/QDU-Robomaster/VisionPreview.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 8d4562898e16b1f5057fb8c79fcfb8bc8c8bba82
+    commit: 5b6d1e1aafe949b9251562b5516eab522a679226
   QDU-Robomaster/WebotsCamera:
     repo: https://github.com/QDU-Robomaster/WebotsCamera.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: e7f441ae791094de38b06b491086219feed694c3
+    commit: d2d020c86276b514d1f43e909464c7889281d407
   QDU-Robomaster/WebotsFireNotify:
     repo: https://github.com/QDU-Robomaster/WebotsFireNotify.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: f90458c86898c2f723ccca00746fa2275c14de7b
+    commit: 78f1e5c4a8ebc02c25afdbfb94fb6839ffbe54a9
   QDU-Robomaster/WebotsGimbal:
     repo: https://github.com/QDU-Robomaster/WebotsGimbal.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: bcff35e838d109485c0f76d13f744e8adb04d922
+    commit: 319292aa0df6f97e41785fc698dc1675502eb859
   QDU-Robomaster/WebotsReferee:
     repo: https://github.com/QDU-Robomaster/WebotsReferee.git
     source: https://qdu-robomaster.github.io/qdu-future-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 19d31503dc2cc1ea82a2dbf6e452a0244ec0b307
+    commit: 8f87f0412d9b9d9d04a4dc3f03d6e1142879c2bd
   xrobot-org/DurationStatistics:
     repo: https://github.com/xrobot-org/DurationStatistics.git
     source: https://xrobot.work/xrobot-modules/index.yaml
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: f583a8a12d5c9a8809727ecfdea1a247ca745ef7
+    commit: d8146af81902e2bce2969bf0f0a53daa3fa0bdec
