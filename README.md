@@ -14,11 +14,11 @@ WebotsCamera / CameraSync
     -> WebotsGimbal / WebotsFireNotify
 ```
 
-图像为 800x600、BGR8，水平视场角 0.596886 rad，对应 fx=fy=1300.258730617794、cx=400、cy=300。相机每 10 ms 更新渲染图像，每个仿真 step 更新 IMU；`CameraSync` 与 `CameraFrameSync` 的触发周期为 20000 us，即仿真时间下的 50 Hz。装甲板检测使用 OpenVINO Runtime 与 `ArmorDetectorModel::OPENVINO_640X512`，环境变量 `XR_ARMOR_OPENVINO_DEVICE=CPU` 指定在 CPU 上推理。`WebotsReferee` 发布 `robot_game_ref`（`RefereeTypes::RobotGameRefereePack`），`Aimer`、`WebotsReferee`、`WebotsFireNotify` 的弹速均为 23 m/s。
+图像为 800x600、BGR8，水平视场角 0.596886 rad，对应 fx=fy=1300.258730617794、cx=400、cy=300。相机每 10 ms 更新渲染图像，每个仿真步更新 IMU；`WebotsCamera` 与 `CameraSync` 的触发周期为 20000 us，即仿真时间下的 50 Hz。装甲板检测使用 OpenVINO Runtime 与 `ArmorDetectorModel::OPENVINO_640X512`，环境变量 `XR_ARMOR_OPENVINO_DEVICE=CPU` 指定在 CPU 上推理。`WebotsReferee` 发布 `robot_game_ref`（`RefereeTypes::RobotGameRefereePack`），`Aimer`、`WebotsReferee`、`WebotsFireNotify` 的弹速均为 23 m/s。
 
 The platform is a Webots R2025a simulation. The program runs as a Webots controller, statically assembled with LibXR and XRobot, and its entry source is `User/main.cpp`. The default world is `webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt`, with a moving, rotating four-armor vehicle. The autoaim chain is shown above.
 
-The image is 800x600 BGR8 with a horizontal field of view of 0.596886 rad, i.e. fx=fy=1300.258730617794, cx=400, cy=300. The camera updates the rendered image every 10 ms and the IMU every simulation step; the trigger period of `CameraSync` and `CameraFrameSync` is 20000 us, i.e. 50 Hz in simulation time. Armor detection uses the OpenVINO Runtime with `ArmorDetectorModel::OPENVINO_640X512`; the environment variable `XR_ARMOR_OPENVINO_DEVICE=CPU` selects inference on the CPU. `WebotsReferee` publishes `robot_game_ref` (`RefereeTypes::RobotGameRefereePack`), and the bullet speed of `Aimer`, `WebotsReferee` and `WebotsFireNotify` is 23 m/s.
+The image is 800x600 BGR8 with a horizontal field of view of 0.596886 rad, i.e. fx=fy=1300.258730617794, cx=400, cy=300. The camera updates the rendered image every 10 ms and the IMU every simulation step; the trigger period of `WebotsCamera` and `CameraSync` is 20000 us, i.e. 50 Hz in simulation time. Armor detection uses the OpenVINO Runtime with `ArmorDetectorModel::OPENVINO_640X512`; the environment variable `XR_ARMOR_OPENVINO_DEVICE=CPU` selects inference on the CPU. `WebotsReferee` publishes `robot_game_ref` (`RefereeTypes::RobotGameRefereePack`), and the bullet speed of `Aimer`, `WebotsReferee` and `WebotsFireNotify` is 23 m/s.
 
 ## 2. 配置一览 / Configurations
 
@@ -30,17 +30,17 @@ The image is 800x600 BGR8 with a horizontal field of view of 0.596886 rad, i.e. 
 | --- | --- |
 | `User/xrobot.yaml` | The only configuration: Webots camera, trigger sync, detection, tracking, aiming, gimbal and fire simulation |
 
-配置常量写在 `constexprs` 段，生成到 `User/xrobot_main.hpp` 的 `AutoAimRunConfig` 命名空间。`ArmorTracker` 的 `camera_mount_to_body` 外参和跟踪、弹道参数均在该文件中。Detector、Tracker、Aimer 的 Web 预览默认开启，在各自的 `preview.enabled` 中修改。配置格式见 [XRobot 文档](https://xrobot-org.github.io)。
+配置常量写在 `constexprs` 段，生成到 `User/xrobot_main.hpp` 的 `AutoAimRunConfig` 命名空间。`ArmorTracker` 的 `camera_mount_to_body` 外参和跟踪、弹道参数均在该文件中。Detector、Tracker、Aimer 的 Web 预览默认开启，在各自的 `preview.enabled` 中修改。配置格式见 [XRobot 文档](https://xrobot.work/docs/proj_man/proj-man-config)。
 
-The configuration constants are in the `constexprs` section and are generated into the `AutoAimRunConfig` namespace of `User/xrobot_main.hpp`. The `camera_mount_to_body` extrinsic and the tracking and ballistic parameters of `ArmorTracker` are in the same file. The Web previews of Detector, Tracker and Aimer are on by default and are switched through their `preview.enabled`. The configuration format is described in the [XRobot documentation](https://xrobot-org.github.io).
+The configuration constants are in the `constexprs` section and are generated into the `AutoAimRunConfig` namespace of `User/xrobot_main.hpp`. The `camera_mount_to_body` extrinsic and the tracking and ballistic parameters of `ArmorTracker` are in the same file. The Web previews of Detector, Tracker and Aimer are on by default and are switched through their `preview.enabled`. The configuration format is described in the [XRobot documentation](https://xrobot.work/docs/proj_man/proj-man-config).
 
 ## 3. 构建 / Build
 
-环境：C++20、CMake、Ninja、Webots R2025a、OpenCV、OpenVINO、xrobot（版本与 `Modules/modules.yaml` 的 `xrobot:` 一致，当前为 1.0.0）；LibXR 为 6.0.0，由 `libxr` 子模块给出。`Modules/modules.yaml` 以 `same-or-dev` 请求各 Module，`xrobot.lock` 记录每个 Module 的提交，升级时运行 `xrobot setup --update`。
+环境：C++20、CMake、Ninja、Webots R2025a、OpenCV、OpenVINO、xrobot（版本与 `Modules/modules.yaml` 的 `xrobot:` 一致，当前为 1.0.0）；LibXR 由 `libxr` 子模块固定到具体提交。`Modules/modules.yaml` 以 `same-or-dev` 请求各模块，`xrobot.lock` 记录每个模块的提交，升级时运行 `xrobot setup --update`。
 
-Docker 或 Dev Container 内由脚本完成构建，它依次初始化缺失的子模块、检查 `Modules/modules.yaml` 中的 Module 已就绪、运行 `xrobot gen`，再用 CMake 配置并构建，输出 `build/rm_auto_aim`。`XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 设定输出目录、构建类型和并发数；OpenVINO 从 `/opt/intel` 下查找，也可设置 `OpenVINO_DIR`。手工命令与脚本一致。`User/xrobot_main.hpp` 和 `Modules/CMakeLists.txt` 由 `xrobot` 生成，配置或 Module 变化后，构建会提示重新运行 `xrobot gen`。
+Docker 或 Dev Container 内由脚本完成构建，它依次初始化缺失的子模块、检查 `Modules/modules.yaml` 中的模块已就绪、运行 `xrobot gen`，再用 CMake 配置并构建，输出 `build/rm_auto_aim`。`XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 设定输出目录、构建类型和并发数；OpenVINO 从 `/opt/intel` 下查找，也可设置 `OpenVINO_DIR`。手工命令与脚本一致。`User/xrobot_main.hpp` 和 `Modules/CMakeLists.txt` 由 `xrobot` 生成，配置或模块变化后，构建会提示重新运行 `xrobot gen`。
 
-Environment: C++20, CMake, Ninja, Webots R2025a, OpenCV, OpenVINO, and xrobot (the version equals the `xrobot:` field of `Modules/modules.yaml`, currently 1.0.0); LibXR is 6.0.0 and comes from the `libxr` submodule. `Modules/modules.yaml` requests each Module as `same-or-dev`, `xrobot.lock` records the commit of each Module, and `xrobot setup --update` upgrades them.
+Environment: C++20, CMake, Ninja, Webots R2025a, OpenCV, OpenVINO, and xrobot (the version equals the `xrobot:` field of `Modules/modules.yaml`, currently 1.0.0); the `libxr` submodule pins LibXR to a commit. `Modules/modules.yaml` requests each Module as `same-or-dev`, `xrobot.lock` records the commit of each Module, and `xrobot setup --update` upgrades them.
 
 Inside Docker or the Dev Container a script does the build: it initializes missing submodules, checks that the Modules listed in `Modules/modules.yaml` are present, runs `xrobot gen`, then configures and builds with CMake, producing `build/rm_auto_aim`. `XR_BUILD_DIR`, `XR_BUILD_TYPE` and `XR_BUILD_JOBS` set the output directory, build type and job count; OpenVINO is searched under `/opt/intel`, and `OpenVINO_DIR` overrides it. The manual commands equal the script. `User/xrobot_main.hpp` and `Modules/CMakeLists.txt` are generated by `xrobot`; after a change of the configuration or the Modules the build asks for `xrobot gen` again.
 
@@ -52,7 +52,7 @@ bash docker/entrypoints/build.sh
 git submodule update --init --recursive
 xrobot setup
 xrobot gen
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DAUTO_AIM_PREVIEW_IMAGE=1   -DOpenVINO_DIR=/opt/intel/openvino_2025/runtime/cmake
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DAUTO_AIM_PREVIEW_IMAGE=1 -DOpenVINO_DIR=/opt/intel/openvino_2025/runtime/cmake
 cmake --build build -j4 --target rm_auto_aim
 ```
 
@@ -79,7 +79,7 @@ The scripts in `tests/` check the configuration and the launcher.
 bash docker/entrypoints/headless_preview.sh
 
 # direct call
-XR_ARMOR_OPENVINO_DEVICE=CPU LIBGL_ALWAYS_SOFTWARE=1 python3 run_headless_preview.py --controller build/rm_auto_aim   --runtime-sec 40 --sim-flow-rate 0.1 --run-root .vscode-runs
+XR_ARMOR_OPENVINO_DEVICE=CPU LIBGL_ALWAYS_SOFTWARE=1 python3 run_headless_preview.py --controller build/rm_auto_aim --runtime-sec 40 --sim-flow-rate 0.1 --run-root .vscode-runs
 
 # checks
 python3 tests/config_contract_test.py
