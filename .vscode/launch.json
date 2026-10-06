@@ -31,14 +31,6 @@
                     "value": "/usr/local/webots/lib/controller:${env:LD_LIBRARY_PATH}"
                 },
                 {
-                    "name": "XR_TRACKER_TRUTH_COMPARE",
-                    "value": "1"
-                },
-                {
-                    "name": "XR_TRACKER_VIDEO_RECORDER",
-                    "value": "1"
-                },
-                {
                     "name": "XR_FREQ_PROBE",
                     "value": "1"
                 }

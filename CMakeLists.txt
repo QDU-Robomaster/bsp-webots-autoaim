@@ -7,16 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ## 强制启用警告
 add_definitions(-Wall -Werror)
 
-if(NOT DEFINED AUTO_AIM_PREVIEW_IMAGE)
-set(AUTO_AIM_PREVIEW_IMAGE 1)
-endif()
-
-if(AUTO_AIM_PREVIEW_IMAGE)
-    add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=1)
-else()
-    add_compile_definitions(AUTO_AIM_PREVIEW_IMAGE=0)
-endif()
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()

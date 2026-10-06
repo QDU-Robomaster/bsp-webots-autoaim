@@ -4,20 +4,21 @@ Webots 自瞄仿真 BSP / Webots autoaim simulation BSP
 
 ## 1. 板子与平台 / Board and Platform
 
-平台是 Webots R2025a 仿真，程序作为 Webots controller 运行，由 LibXR 和 XRobot 静态装配，入口源文件为 `User/main.cpp`。默认 world 为 `webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt`，场景中有移动、旋转的四装甲板车辆。自瞄链路如下：
+平台是 Webots R2025a 仿真，程序作为 Webots controller 运行，由 LibXR 和 XRobot 静态装配，入口源文件为 `User/main.cpp`。默认 world 为 `webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt`，场景中有移动、旋转的四装甲板车辆。自瞄链路与真车相同，相机、C 板与发射机构由仿真模块代替：
 
 ```text
-WebotsCamera / CameraSync
-    -> CameraFrameSync(TRIGGER)
-    -> ArmorDetector(OPENVINO_640X512)
-    -> ArmorTracker -> Aimer
+WebotsCamera（相机 + 仿真 C 板的 IMU 与触发 GPIO） / CameraSync
+    -> CameraFrameSync（TRIGGER） -> gimbal_synced
+    -> ArmorDetector（v4，OpenVINO） -> gimbal_detected
+    -> ArmorTracker -> gimbal_tracked
+    -> Aimer -> gimbal_aimed、target_euler、fire_notify
     -> WebotsGimbal / WebotsFireNotify
 ```
 
-图像为 800x600、BGR8，水平视场角 0.596886 rad，对应 fx=fy=1300.258730617794、cx=400、cy=300。相机每 10 ms 更新渲染图像，每个仿真步更新 IMU；`WebotsCamera` 与 `CameraSync` 的触发周期为 20000 us，即仿真时间下的 50 Hz。装甲板检测使用 OpenVINO Runtime 与 `ArmorDetectorModel::OPENVINO_640X512`，环境变量 `XR_ARMOR_OPENVINO_DEVICE=CPU` 指定在 CPU 上推理。`WebotsReferee` 发布 `robot_game_ref`（`RefereeTypes::RobotGameRefereePack`），`Aimer`、`WebotsReferee`、`WebotsFireNotify` 的弹速均为 23 m/s。
+世界里的相机名为 `gimbal`，按真车传感器的原生分辨率 1440×1080 渲染，`fieldOfView` 0.599727 与真车焦距相同（fx = fy = 2328.69），Lens 不加畸变；WebotsCamera 在软件里取窗、抽样成 640×512 BayerRG8，检测器看到的帧几何与真车一致。IMU 设备为 `gimbal_gyro`、`gimbal_accelerometer`、`gimbal_inertial_unit`，WebotsCamera 每个仿真步把它们发布为 `gimbal_gyro`、`gimbal_accl`、`gimbal_quat`，CameraFrameSync 与 WebotsGimbal 都用这份 IMU。CameraSync 的触发周期为 20 ms（仿真时间 50 Hz）；仿真相机在边沿后一个仿真步取图，CameraFrameSync 的同步偏移因此为 1 ms。`WebotsReferee` 发布 `robot_game_ref`，本机为红方 7 号，检测器按它打蓝方；`Aimer`、`WebotsReferee`、`WebotsFireNotify` 的弹速均为 23 m/s。
 
 ```text
-User/main.cpp             入口源文件，调用 XROBOT_MAIN()
+User/main.cpp             入口源文件：设定仿真速度、写运行摘要、调用 XROBOT_MAIN()
 User/xrobot.yaml          配置
 Modules/modules.yaml      使用的模块（`xrobot:` 记录 XRobot 版本）
 Modules/sources.yaml      源
@@ -26,46 +27,50 @@ libxr/                    LibXR 子模块
 webots/                   world、PROTO、网格、贴图和目标车辆的 controller
 docker/                   镜像与构建、运行脚本
 run_headless_preview.py   无头 Webots 的启动脚本
-tests/                    配置与 launcher 的检查脚本
+tests/                    启动器与启动参数的检查脚本
 ```
 
-`Modules/<owner>/<Repo>/`、`Modules/CMakeLists.txt` 和 `User/xrobot_main.hpp` 由 `xrobot` 生成，已列入 `.gitignore`。
+`Modules/<owner>/<Repo>/`、`Modules/CMakeLists.txt` 和 `User/xrobot_main.hpp` 由 `xrobot` 生成，已列入 `.gitignore`；模型目录 `armor-models/` 也不进仓库。
 
-The platform is a Webots R2025a simulation. The program runs as a Webots controller, statically assembled with LibXR and XRobot, and its entry source is `User/main.cpp`. The default world is `webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt`, with a moving, rotating four-armor vehicle. The autoaim chain is shown above.
+The platform is a Webots R2025a simulation. The program runs as a Webots controller, statically assembled with LibXR and XRobot, and its entry source is `User/main.cpp`. The default world is `webots/worlds/auto_aim_test_field_target_vehicle_camera_preview.wbt`, with a moving, rotating four-armor vehicle. The auto-aim chain is the robot's, with the camera, C board and launcher replaced by simulation Modules (see above).
 
-The image is 800x600 BGR8 with a horizontal field of view of 0.596886 rad, i.e. fx=fy=1300.258730617794, cx=400, cy=300. The camera updates the rendered image every 10 ms and the IMU every simulation step; the trigger period of `WebotsCamera` and `CameraSync` is 20000 us, i.e. 50 Hz in simulation time. Armor detection uses the OpenVINO Runtime with `ArmorDetectorModel::OPENVINO_640X512`; the environment variable `XR_ARMOR_OPENVINO_DEVICE=CPU` selects inference on the CPU. `WebotsReferee` publishes `robot_game_ref` (`RefereeTypes::RobotGameRefereePack`), and the bullet speed of `Aimer`, `WebotsReferee` and `WebotsFireNotify` is 23 m/s.
+The world camera is named `gimbal` and renders at the robot sensor's native 1440×1080 with `fieldOfView` 0.599727, the robot's focal length (fx = fy = 2328.69), and no Lens distortion; WebotsCamera windows and samples it into 640×512 BayerRG8 in software, so the detector sees the robot's frame geometry. The IMU devices are `gimbal_gyro`, `gimbal_accelerometer` and `gimbal_inertial_unit`; WebotsCamera publishes them every simulation step as `gimbal_gyro`, `gimbal_accl` and `gimbal_quat`, the IMU that both CameraFrameSync and WebotsGimbal use. CameraSync triggers every 20 ms (50 Hz in simulation time); the simulated camera reads one step after the edge, so CameraFrameSync's sync offset is 1 ms. `WebotsReferee` publishes `robot_game_ref` for red robot 7, so the detector aims at blue; the bullet speed of `Aimer`, `WebotsReferee` and `WebotsFireNotify` is 23 m/s.
 
-`Modules/<owner>/<Repo>/`, `Modules/CMakeLists.txt` and `User/xrobot_main.hpp` are generated by `xrobot` and listed in `.gitignore`.
+`Modules/<owner>/<Repo>/`, `Modules/CMakeLists.txt` and `User/xrobot_main.hpp` are generated by `xrobot` and listed in `.gitignore`; the model directory `armor-models/` stays out of the repository as well.
 
 ## 2. 配置一览 / Configurations
 
 | 配置 | 用途 |
 | --- | --- |
-| `User/xrobot.yaml` | 唯一的配置：Webots 相机、触发同步、检测、跟踪、瞄准、云台与发射仿真 |
+| `User/xrobot.yaml` | 唯一的配置：Webots 相机、触发同步、检测、跟踪、瞄准、网页预览、云台与发射仿真 |
 
 | Configuration | Purpose |
 | --- | --- |
-| `User/xrobot.yaml` | The only configuration: Webots camera, trigger sync, detection, tracking, aiming, gimbal and fire simulation |
+| `User/xrobot.yaml` | The only configuration: Webots camera, trigger sync, detection, tracking, aiming, web preview, gimbal and fire simulation |
 
-配置常量写在 `constexprs` 段，生成到 `User/xrobot_main.hpp` 的 `AutoAimRunConfig` 命名空间。`ArmorTracker` 的 `camera_mount_to_body` 外参和跟踪、弹道参数均在该文件中。Detector、Tracker、Aimer 的 Web 预览默认开启，在各自的 `preview.enabled` 中修改。配置格式见 [XRobot 文档](https://xrobot.work/docs/proj_man/proj-man-config)。
+配置常量写在 `constexprs` 段，生成到 `AutoAimRunConfig` 命名空间；仿真相机的标定、触发周期和仿真步长都在这里。网页预览在 `http://<主机>:8080/`。配置格式见 [XRobot 文档](https://xrobot.work/docs/proj_man/proj-man-config)。
 
-The configuration constants are in the `constexprs` section and are generated into the `AutoAimRunConfig` namespace of `User/xrobot_main.hpp`. The `camera_mount_to_body` extrinsic and the tracking and ballistic parameters of `ArmorTracker` are in the same file. The Web previews of Detector, Tracker and Aimer are on by default and are switched through their `preview.enabled`. The configuration format is described in the [XRobot documentation](https://xrobot.work/en/docs/proj_man/proj-man-config).
+The configuration constants are in the `constexprs` section and are generated into the `AutoAimRunConfig` namespace; the simulated camera's calibration, the trigger period and the simulation step are there. The web preview is at `http://<host>:8080/`. The configuration format is described in the [XRobot documentation](https://xrobot.work/en/docs/proj_man/proj-man-config).
 
 ## 3. 构建 / Build
 
 环境：C++20、CMake、Ninja、Webots R2025a、OpenCV、OpenVINO、xrobot（版本与 `Modules/modules.yaml` 的 `xrobot:` 一致，当前为 1.0.0）；LibXR 由 `libxr` 子模块固定到具体提交。`Modules/modules.yaml` 以 `same-or-dev` 请求各模块，`xrobot.lock` 记录每个模块的提交，升级时运行 `xrobot setup --update`。
 
-Docker 或 Dev Container 内由脚本 `docker/entrypoints/build.sh` 完成构建。它依次初始化缺失的子模块；`Modules/CMakeLists.txt` 或 `xrobot.lock` 中某个模块的检出不存在时（例如新克隆的仓库）运行 `xrobot setup`，已有的检出保持不变；随后检查 `Modules/modules.yaml` 中的模块已就绪，运行 `xrobot gen`，再用 CMake 配置并构建，输出 `build/rm_auto_aim`。`XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 设定输出目录、构建类型和并发数；OpenVINO 从 `/opt/intel` 下查找，也可设置 `OpenVINO_DIR`。不使用脚本时的手工命令见下方代码块。
+Docker 或 Dev Container 内由脚本 `docker/entrypoints/build.sh` 完成构建：初始化缺失的子模块，需要时运行 `xrobot setup`（已有的模块检出保持不变），再运行 `xrobot gen` 并用 CMake 构建，输出 `build/rm_auto_aim`。`XR_BUILD_DIR`、`XR_BUILD_TYPE`、`XR_BUILD_JOBS` 设定输出目录、构建类型和并发数；OpenVINO 从 `/opt/intel` 下查找，也可设置 `OpenVINO_DIR`。
 
-`.github/workflows/build-test.yml` 在镜像 `ghcr.io/xrobot-org/docker-image-webots:main` 中分别用 GCC 和 Clang 构建：安装固定版本的 xrobot，运行 `xrobot format --check`、`xrobot setup --frozen` 和 `tests/` 中的配置与 launcher 检查，构建 `rm_auto_aim` 后检查无效的 `--sim-flow-rate` 启动参数。
+模型与车上 BSP 相同，放在 `armor-models/model_private/`：
 
 Environment: C++20, CMake, Ninja, Webots R2025a, OpenCV, OpenVINO, and xrobot (the version equals the `xrobot:` field of `Modules/modules.yaml`, currently 1.0.0); the `libxr` submodule pins LibXR to a commit. `Modules/modules.yaml` requests each Module as `same-or-dev`, `xrobot.lock` records the commit of each Module, and `xrobot setup --update` upgrades them.
 
-Inside Docker or the Dev Container the script `docker/entrypoints/build.sh` does the build. It initializes missing submodules; when `Modules/CMakeLists.txt` or the checkout of a Module in `xrobot.lock` is missing (in a fresh clone, for example), it runs `xrobot setup` and leaves existing checkouts as they are; it then checks that the Modules listed in `Modules/modules.yaml` are present, runs `xrobot gen`, and configures and builds with CMake, producing `build/rm_auto_aim`. `XR_BUILD_DIR`, `XR_BUILD_TYPE` and `XR_BUILD_JOBS` set the output directory, build type and job count; OpenVINO is searched under `/opt/intel`, and `OpenVINO_DIR` overrides it. The manual commands without the script are in the code block below.
+Inside Docker or the Dev Container the script `docker/entrypoints/build.sh` builds: it initialises missing submodules, runs `xrobot setup` when needed (existing Module checkouts stay as they are), then runs `xrobot gen` and builds with CMake, producing `build/rm_auto_aim`. `XR_BUILD_DIR`, `XR_BUILD_TYPE` and `XR_BUILD_JOBS` set the output directory, build type and job count; OpenVINO is searched under `/opt/intel`, and `OpenVINO_DIR` overrides it.
 
-`.github/workflows/build-test.yml` builds with GCC and with Clang in the image `ghcr.io/xrobot-org/docker-image-webots:main`: it installs the pinned xrobot, runs `xrobot format --check`, `xrobot setup --frozen` and the configuration and launcher checks in `tests/`, builds `rm_auto_aim`, and then checks the handling of invalid `--sim-flow-rate` start-up arguments.
+The models are the robot BSP's, in `armor-models/model_private/`:
 
 ```bash
+git clone https://github.com/QDU-Robomaster/armor-models.git
+armor-models/scripts/fetch_model.sh det-v4.0 armor-models/model_private
+armor-models/scripts/fetch_model.sh num-v1.0 armor-models/model_private
+
 # script
 bash docker/entrypoints/build.sh
 
@@ -73,37 +78,32 @@ bash docker/entrypoints/build.sh
 git submodule update --init --recursive
 xrobot setup
 xrobot gen
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DAUTO_AIM_PREVIEW_IMAGE=1 -DOpenVINO_DIR=/opt/intel/openvino_2025/runtime/cmake
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DOpenVINO_DIR=/opt/intel/openvino_2025/runtime/cmake
 cmake --build build -j4 --target rm_auto_aim
 ```
 
-## 4. 烧录与运行 / Flash and Run
+`.github/workflows/build-test.yml` 在镜像 `ghcr.io/xrobot-org/docker-image-webots:main` 中分别用 GCC 和 Clang 构建：安装固定版本的 xrobot，运行 `xrobot format --check`、`xrobot setup --frozen` 和启动器检查，构建 `rm_auto_aim` 后检查无效的 `--sim-flow-rate` 启动参数。
 
-`docker/entrypoints/headless_preview.sh` 在 `build/rm_auto_aim` 不存在时先构建，再通过 `run_headless_preview.py` 启动无头 Webots 并加载默认 world，日志与结果写入 `XR_RUN_ROOT` 下按时间命名的目录（默认 `.docker-runs`）。环境变量 `XR_RUNTIME_SEC`（默认 10）、`XR_SIM_FLOW_RATE`（默认 0.1）、`XR_ARMOR_OPENVINO_DEVICE` 设定运行时长、仿真与墙钟时间之比和推理设备。`run_headless_preview.py` 也可直接调用。
+`.github/workflows/build-test.yml` builds with GCC and with Clang in the image `ghcr.io/xrobot-org/docker-image-webots:main`: it installs the pinned xrobot, runs `xrobot format --check`, `xrobot setup --frozen` and the launcher checks, builds `rm_auto_aim`, and then checks the handling of invalid `--sim-flow-rate` start-up arguments.
 
-`--runtime-sec` 自 controller 启动起计时，不含 world 加载时间；运行期间有 pipeline 帧输出且进程未提前退出时，结果为 `status=PASS`。`--sim-flow-rate` 通过 `WEBOTS_SIM_FLOW_RATE` 传给 controller，直接运行 controller 时默认 `1.0`。Windows 使用 `docker/windows-deploy.ps1` 或 Dev Container；`.vscode/tasks.json` 提供构建和 10 s 无头预览任务。
+## 4. 运行 / Run
 
-三路 Web 预览共用端口 `8080`：`/` 为汇总页，`/stream/armor_detector`、`/stream/armor_tracker`、`/stream/aimer_preview` 为单路画面。预览绑定地址为 `0.0.0.0`，即监听全部网卡；创建 Docker 容器时用 `-p 127.0.0.1:18080:8080` 映射，则访问地址为 `http://127.0.0.1:18080/`。
+`docker/entrypoints/headless_preview.sh` 先增量构建，再通过 `run_headless_preview.py` 启动无头 Webots 并加载默认 world，日志与结果写入 `XR_RUN_ROOT` 下按时间命名的目录（默认 `.docker-runs`）。环境变量 `XR_RUNTIME_SEC`（默认 10）、`XR_SIM_FLOW_RATE`（默认 0.1）设定运行时长和仿真与墙钟时间之比。`run_headless_preview.py` 也可直接调用。
 
-`tests/` 中的脚本检查配置与 launcher。
+`docker/entrypoints/headless_preview.sh` builds incrementally, then starts headless Webots with the default world through `run_headless_preview.py`; logs and results are written to a time-named directory under `XR_RUN_ROOT` (default `.docker-runs`). The environment variables `XR_RUNTIME_SEC` (default 10) and `XR_SIM_FLOW_RATE` (default 0.1) set the run time and the simulation-to-wall-clock ratio. `run_headless_preview.py` can also be called directly. `.vscode/tasks.json` provides build and headless preview tasks.
 
-`docker/entrypoints/headless_preview.sh` builds first when `build/rm_auto_aim` is missing, then starts headless Webots with the default world through `run_headless_preview.py`; logs and results are written to a time-named directory under `XR_RUN_ROOT` (default `.docker-runs`). The environment variables `XR_RUNTIME_SEC` (default 10), `XR_SIM_FLOW_RATE` (default 0.1) and `XR_ARMOR_OPENVINO_DEVICE` set the run time, the simulation-to-wall-clock ratio and the inference device. `run_headless_preview.py` can also be called directly.
+controller 在仓库根目录运行，每秒把运行摘要写到 `XR_RUN_SUMMARY`（启动器设为运行目录下的 `run_summary.json`）：各层收到的帧数（`synced`、`detected`、`tracked`、`aimed`）、检测到的装甲板数、跟踪中的帧数、控制与开火的帧数、出弹数和错误日志数。启动器按摘要判定：运行到 `--runtime-sec`（自 controller 启动起计，不含 world 加载）时各层都收到过帧、有检测和跟踪、没有错误日志，结果为 `status=PASS`。另设 `XR_SHOTS_TSV` 时，controller 把每发弹丸（发射请求时刻、出膛时刻、弹速）逐行写入该文件，可按真值离线判定命中。
 
-`--runtime-sec` counts from the controller start and excludes world loading; the result is `status=PASS` when the pipeline produced frames and the process stayed alive for the whole run. `--sim-flow-rate` reaches the controller through `WEBOTS_SIM_FLOW_RATE`, which defaults to `1.0` when the controller runs directly. On Windows, `docker/windows-deploy.ps1` or the Dev Container is used; `.vscode/tasks.json` provides build and 10 s headless preview tasks.
-
-The three Web previews share port `8080`: `/` is the overview page, and `/stream/armor_detector`, `/stream/armor_tracker` and `/stream/aimer_preview` are the single streams. The preview binds to `0.0.0.0`, i.e. all network interfaces; mapping the container with `-p 127.0.0.1:18080:8080` makes the address `http://127.0.0.1:18080/`.
-
-The scripts in `tests/` check the configuration and the launcher.
+The controller runs from the repository root and writes the run summary every second to `XR_RUN_SUMMARY` (the launcher sets `run_summary.json` in the run directory): frames received per stage (`synced`, `detected`, `tracked`, `aimed`), detected armors, frames with tracking, frames with control and fire, shots and error logs. The launcher judges from it: at `--runtime-sec` (counted from the controller start, without world loading) the result is `status=PASS` when every stage received frames, there were detections and tracking, and no error was logged. With `XR_SHOTS_TSV` set the controller also writes every shot (request time, muzzle exit time, bullet speed) to that file for an offline hit judgement against the truth.
 
 ```bash
 # run
 bash docker/entrypoints/headless_preview.sh
 
 # direct call
-XR_ARMOR_OPENVINO_DEVICE=CPU LIBGL_ALWAYS_SOFTWARE=1 python3 run_headless_preview.py --controller build/rm_auto_aim --runtime-sec 40 --sim-flow-rate 0.1 --run-root .vscode-runs
+LIBGL_ALWAYS_SOFTWARE=1 python3 run_headless_preview.py --controller build/rm_auto_aim --runtime-sec 40 --sim-flow-rate 0.5 --run-root .vscode-runs
 
 # checks
-python3 tests/config_contract_test.py
 python3 tests/launcher_test.py
 python3 tests/startup_test.py build/rm_auto_aim
 ```

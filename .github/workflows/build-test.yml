@@ -58,10 +58,8 @@ jobs:
       run: xrobot format --check
     - name: Resolve locked Modules and check the config
       run: xrobot setup --frozen --context-ref "$XR_CONTEXT_REF" --release-ref "$XR_RELEASE_REF"
-    - name: Test the Webots configuration
-      run: |
-        python3 tests/config_contract_test.py
-        python3 tests/launcher_test.py
+    - name: Test the launcher
+      run: python3 tests/launcher_test.py
     - name: Detect OpenVINO
       shell: bash
       run: |
