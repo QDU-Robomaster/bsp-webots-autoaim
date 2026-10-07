@@ -9,7 +9,7 @@ Webots 自瞄仿真 BSP / Webots autoaim simulation BSP
 ```text
 WebotsCamera（相机 + 仿真 C 板的 IMU 与触发 GPIO） / CameraSync
     -> CameraFrameSync（TRIGGER） -> gimbal_synced
-    -> ArmorDetector（v4，OpenVINO） -> gimbal_detected
+    -> ArmorDetector（v7，OpenVINO） -> gimbal_detected
     -> ArmorTracker -> gimbal_tracked
     -> Aimer -> gimbal_aimed、target_euler、fire_notify
     -> WebotsGimbal / WebotsFireNotify
@@ -68,7 +68,7 @@ The models are the robot BSP's, in `armor-models/model_private/`:
 
 ```bash
 git clone https://github.com/QDU-Robomaster/armor-models.git
-armor-models/scripts/fetch_model.sh det-v4.0 armor-models/model_private
+armor-models/scripts/fetch_model.sh det-v7.0 armor-models/model_private
 armor-models/scripts/fetch_model.sh num-v1.0 armor-models/model_private
 
 # script
