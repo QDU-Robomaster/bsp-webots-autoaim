@@ -244,35 +244,26 @@ Robot {
                                             Gyro {
                                               translation 0 0 -0.05
                                               rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
-                                              name "camera_gyro"
+                                              name "gimbal_gyro"
                                             }
                                             Accelerometer {
                                               translation 0 0 -0.05
                                               rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
-                                              name "camera_accelerometer"
+                                              name "gimbal_accelerometer"
                                             }
                                             InertialUnit {
                                               translation 0 0 -0.05
                                               rotation 0.5773502691896257 0.5773502691896257 0.5773502691896257 2.0943951023931953
-                                              name "camera_inertial_unit"
+                                              name "gimbal_inertial_unit"
                                             }
                                             DEF camera Camera {
                                               translation 0 0 -0.05
                                               rotation 0 1 0 1.5707996938995747
-                                              fieldOfView 0.596886
-                                              width 800
-                                              height 600
+                                              name "gimbal"
+                                              fieldOfView 0.599727
+                                              width 1440
+                                              height 1080
                                               exposure 2
-                                              lens Lens {
-                                                center 0.495363 0.506862
-                                                radialCoefficients -0.0955869 0.30137
-                                                tangentialCoefficients -0.000821847 0.000245824
-                                              }
-                                            }
-                                            Display {
-                                              width 800
-                                              height 600
-                                              name "preview_display"
                                             }
                                           ]
                                           boundingObject Box {

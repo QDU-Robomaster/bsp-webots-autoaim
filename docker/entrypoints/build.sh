@@ -16,8 +16,7 @@ if [[ -z "${openvino_dir}" ]]; then
   done
 fi
 cmake_args=(-S "${repo_root}" -B "${build_dir}" -G Ninja
-  -DCMAKE_BUILD_TYPE="${XR_BUILD_TYPE:-Release}"
-  -DAUTO_AIM_PREVIEW_IMAGE="${AUTO_AIM_PREVIEW_IMAGE:-1}")
+  -DCMAKE_BUILD_TYPE="${XR_BUILD_TYPE:-Release}")
 if [[ -n "${openvino_dir}" ]]; then
   cmake_args+=(-DOpenVINO_DIR="${openvino_dir}")
 fi

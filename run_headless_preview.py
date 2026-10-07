@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Launch the real Webots BSP and distinguish a healthy run from a started process."""
+"""Launch the Webots BSP headless and judge the run from the controller's run summary.
+
+The controller writes run_summary.json (frames per stage, detections, tracking, aim and
+fire frames, error logs) every second; a run passes when every stage received frames,
+detections and tracking occurred, and no error was logged."""
 import argparse
+import json
 import math
 import os
 from pathlib import Path
@@ -11,6 +16,8 @@ import subprocess
 import sys
 import threading
 import time
+
+STAGES = ('synced', 'detected', 'tracked', 'aimed')
 
 
 def parse_args():
@@ -24,7 +31,6 @@ def parse_args():
                         help='Controller wall-clock run duration; 0 runs until interrupted.')
     parser.add_argument('--startup-timeout-sec', type=float, default=60.0)
     parser.add_argument('--port', type=int, default=1235)
-    parser.add_argument('--freq-probe', action='store_true')
     parser.add_argument('--run-root', type=Path, default=Path('.vscode-runs'))
     args = parser.parse_args()
     if (not all(math.isfinite(value) for value in (args.sim_flow_rate, args.runtime_sec, args.startup_timeout_sec))
@@ -61,6 +67,27 @@ def pump(name, process, output):
     output.put((name, None))
 
 
+def read_summary(path, previous):
+    """The latest run summary; the previous one while the file is missing or partial."""
+    try:
+        return json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return previous
+
+
+def judge(summary):
+    """(passed, reason) of a finished run from its summary."""
+    if not summary:
+        return False, 'no_run_summary'
+    if not all(summary.get(stage, 0) > 0 for stage in STAGES):
+        return False, 'stage_without_frames'
+    if summary.get('armors', 0) == 0 or summary.get('tracking', 0) == 0:
+        return False, 'no_detection_or_tracking'
+    if summary.get('errors', 0):
+        return False, 'errors_logged'
+    return True, 'duration_reached'
+
+
 def main():
     args = parse_args()
     repo = args.repo.resolve()
@@ -72,10 +99,11 @@ def main():
             return 2
     run_dir = (repo / args.run_root).resolve() / time.strftime('webots_preview_%Y%m%dT%H%M%SZ', time.gmtime())
     run_dir.mkdir(parents=True, exist_ok=False)
+    summary_path = run_dir / 'run_summary.json'
     environment = os.environ.copy()
     environment.setdefault('WEBOTS_HOME', '/usr/local/webots')
     environment.setdefault('USER', 'xrobot')
-    # Webots itself uses Xvfb/XCB even when the controller uses offscreen previews.
+    # Webots itself uses Xvfb/XCB even when the controller is headless.
     environment['QT_QPA_PLATFORM'] = 'xcb'
     webots_command = [
         'xvfb-run', '-a', str(Path(environment['WEBOTS_HOME']) / 'webots'),
@@ -85,16 +113,13 @@ def main():
     webots = controller_process = None
     controller_url = ''
     controller_started_at = None
-    detector_frames = 0
-    runtime_errors = 0
+    summary = {}
     outcome = 'FAIL'
     reason = 'startup_failed'
     start = time.monotonic()
     output = queue.Queue()
     readers = []
     ansi = re.compile(r'\x1b\[[0-9;]*m')
-    frame_pattern = re.compile(
-        r'ArmorDetector (?:trace frame=(\d+)\s+step=publish_end\b|frame=(\d+)\s+armors=\d+\b)')
     with (run_dir / '00_launcher.log').open('w', encoding='utf-8') as launch_log, \
          (run_dir / '10_webots.log').open('w', encoding='utf-8') as webots_log, \
          (run_dir / '20_controller.log').open('w', encoding='utf-8') as controller_log:
@@ -103,26 +128,21 @@ def main():
             print(text, flush=True)
             launch_log.write(text + '\n')
             launch_log.flush()
+
         def record_line(name, line):
-            nonlocal detector_frames, runtime_errors
             if line is None:
                 return ''
             destination = webots_log if name == 'webots' else controller_log
             destination.write(line)
             destination.flush()
             print(('controller: ' if name == 'controller' else '') + line, end='', flush=True)
-            plain = ansi.sub('', line).strip()
-            match = frame_pattern.search(plain)
-            if match:
-                detector_frames = max(detector_frames, int(match.group(1) or match.group(2)))
-            # --stdout/--stderr may forward controller logs through Webots itself.
-            if re.search(r'(?:^|\s)E \[\d+\]', plain):
-                runtime_errors += 1
-            return plain
+            return ansi.sub('', line).strip()
+
         def start_reader(name, process):
             reader = threading.Thread(target=pump, args=(name, process, output), daemon=True)
             readers.append(reader)
             reader.start()
+
         try:
             log(f'run_dir={run_dir}')
             log('starting Webots: ' + ' '.join(webots_command))
@@ -144,7 +164,8 @@ def main():
                     break
                 if controller_started_at is not None:
                     elapsed = now - controller_started_at
-                    if detector_frames == 0 and elapsed >= args.startup_timeout_sec:
+                    summary = read_summary(summary_path, summary)
+                    if summary.get('detected', 0) == 0 and elapsed >= args.startup_timeout_sec:
                         reason = 'pipeline_startup_timeout'
                         break
                     if args.runtime_sec > 0 and elapsed >= args.runtime_sec:
@@ -160,13 +181,13 @@ def main():
                     controller_env = environment.copy()
                     controller_env['WEBOTS_CONTROLLER_URL'] = controller_url
                     controller_env['WEBOTS_SIM_FLOW_RATE'] = str(args.sim_flow_rate)
-                    controller_env['QT_QPA_PLATFORM'] = 'offscreen'
-                    if args.freq_probe:
-                        controller_env['XR_FREQ_PROBE'] = '1'
+                    controller_env['XR_RUN_SUMMARY'] = str(summary_path)
                     command = ['stdbuf', '-oL', '-eL', str(controller)]
                     log('starting controller: ' + ' '.join(command) + ' url=' + controller_url)
+                    # 在仓库根目录运行，模型路径 armor-models/ 相对于它 / Runs from the
+                    # repository root, which the model path armor-models/ is relative to.
                     controller_process = subprocess.Popen(
-                        command, cwd=run_dir, env=controller_env,
+                        command, cwd=repo, env=controller_env,
                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                         text=True, errors='replace', bufsize=1, start_new_session=True)
                     controller_started_at = time.monotonic()
@@ -183,37 +204,33 @@ def main():
             webots_rc = terminate_group(webots)
             for reader in readers:
                 reader.join(timeout=2)
-            logs_complete = all(not reader.is_alive() for reader in readers)
             while True:
                 try:
                     record_line(*output.get_nowait())
                 except queue.Empty:
                     break
+            summary = read_summary(summary_path, summary)
             if reason == 'duration_reached':
                 if controller_before_stop is not None:
                     reason = f'controller_exited_early:{controller_before_stop}'
                 elif webots_before_stop is not None:
                     reason = f'webots_exited_early:{webots_before_stop}'
-                elif not logs_complete:
-                    reason = 'log_collection_incomplete'
-                elif detector_frames == 0 or runtime_errors:
-                    reason = 'no_frames_or_runtime_errors'
                 else:
-                    outcome = 'PASS'
+                    passed, reason = judge(summary)
+                    outcome = 'PASS' if passed else 'FAIL'
             fields = {
                 'status': outcome, 'reason': reason, 'run_dir': str(run_dir),
                 'sim_flow_rate': args.sim_flow_rate,
                 'controller_started': int(controller_process is not None),
-                'controller_url': controller_url, 'detector_frames_observed': detector_frames,
-                'runtime_errors': runtime_errors,
-                'log_collection_complete': int(logs_complete),
+                'controller_url': controller_url,
+                **{f'summary_{key}': value for key, value in summary.items()},
                 'controller_rc_before_stop': controller_before_stop,
                 'webots_rc_before_stop': webots_before_stop,
                 'controller_rc': controller_rc, 'webots_rc': webots_rc,
             }
             (run_dir / '99_summary.txt').write_text(
                 ''.join(f'{key}={value}\n' for key, value in fields.items()), encoding='utf-8')
-            log(f'status={outcome} reason={reason} detector_frames={detector_frames} runtime_errors={runtime_errors}')
+            log(f'status={outcome} reason={reason} summary={json.dumps(summary)}')
     return 0 if outcome == 'PASS' else (130 if outcome == 'STOPPED' else 1)
 
 
