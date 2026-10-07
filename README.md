@@ -88,9 +88,9 @@ cmake --build build -j4 --target rm_auto_aim
 
 ## 4. 运行 / Run
 
-`docker/entrypoints/headless_preview.sh` 先增量构建，再通过 `run_headless_preview.py` 启动无头 Webots 并加载默认 world，日志与结果写入 `XR_RUN_ROOT` 下按时间命名的目录（默认 `.docker-runs`）。环境变量 `XR_RUNTIME_SEC`（默认 10）、`XR_SIM_FLOW_RATE`（默认 0.1）设定运行时长和仿真与墙钟时间之比。`run_headless_preview.py` 也可直接调用。
+`docker/entrypoints/headless_preview.sh` 先增量构建，再通过 `run_headless_preview.py` 启动无头 Webots 并加载默认 world，日志与结果写入 `XR_RUN_ROOT` 下按时间命名的目录（默认 `.docker-runs`）。环境变量 `XR_RUNTIME_SEC`（默认 60；按原生分辨率渲染、200 Hz 触发时仿真约为墙钟的 0.03 倍，60 s 约合 2 s 仿真时间）、`XR_SIM_FLOW_RATE`（默认 0.1）设定运行时长和仿真与墙钟时间之比。`run_headless_preview.py` 也可直接调用。
 
-`docker/entrypoints/headless_preview.sh` builds incrementally, then starts headless Webots with the default world through `run_headless_preview.py`; logs and results are written to a time-named directory under `XR_RUN_ROOT` (default `.docker-runs`). The environment variables `XR_RUNTIME_SEC` (default 10) and `XR_SIM_FLOW_RATE` (default 0.1) set the run time and the simulation-to-wall-clock ratio. `run_headless_preview.py` can also be called directly. `.vscode/tasks.json` provides build and headless preview tasks.
+`docker/entrypoints/headless_preview.sh` builds incrementally, then starts headless Webots with the default world through `run_headless_preview.py`; logs and results are written to a time-named directory under `XR_RUN_ROOT` (default `.docker-runs`). The environment variables `XR_RUNTIME_SEC` (default 60; with native-resolution rendering and 200 Hz triggering the simulation runs at about 0.03x wall-clock time, so 60 s is about 2 s of simulation) and `XR_SIM_FLOW_RATE` (default 0.1) set the run time and the simulation-to-wall-clock ratio. `run_headless_preview.py` can also be called directly. `.vscode/tasks.json` provides build and headless preview tasks.
 
 controller 在仓库根目录运行，每秒把运行摘要写到 `XR_RUN_SUMMARY`（启动器设为运行目录下的 `run_summary.json`）：各层收到的帧数（`synced`、`detected`、`tracked`、`aimed`）、检测到的装甲板数、跟踪中的帧数、控制与开火的帧数、出弹数和错误日志数。启动器按摘要判定：运行到 `--runtime-sec`（自 controller 启动起计，不含 world 加载）时各层都收到过帧、有检测和跟踪、没有错误日志，结果为 `status=PASS`。另设 `XR_SHOTS_TSV` 时，controller 把每发弹丸（发射请求时刻、出膛时刻、弹速）逐行写入该文件，可按真值离线判定命中。
 

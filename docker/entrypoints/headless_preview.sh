@@ -9,6 +9,6 @@ bash "${repo_root}/docker/entrypoints/build.sh"
 exec python3 "${repo_root}/run_headless_preview.py" \
   --repo "${repo_root}" \
   --controller "${controller_path}" \
-  --runtime-sec "${XR_RUNTIME_SEC:-10}" \
+  --runtime-sec "${XR_RUNTIME_SEC:-60}" \
   --sim-flow-rate "${XR_SIM_FLOW_RATE:-0.1}" \
   --run-root "${XR_RUN_ROOT:-${repo_root}/.docker-runs}"
