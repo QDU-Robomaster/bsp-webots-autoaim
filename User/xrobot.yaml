@@ -10,7 +10,7 @@ constexprs:
   # 仿真触发周期与 basicTimeStep / Simulated trigger period and basicTimeStep
   TriggerPeriodUs:
     type: uint32_t
-    value: 20000
+    value: 5000
   SimStepUs:
     type: int
     value: 1000
