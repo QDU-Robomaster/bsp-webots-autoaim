@@ -119,7 +119,7 @@ modules:
     requested: same-or-dev
     resolved_ref: dev
     ref_kind: branch
-    commit: 8f87f0412d9b9d9d04a4dc3f03d6e1142879c2bd
+    commit: 143aa8e08d298f4adb79f0aa3711479615d215b3
   xrobot-org/DurationStatistics:
     repo: https://github.com/xrobot-org/DurationStatistics.git
     source: https://xrobot.work/xrobot-modules/index.yaml
