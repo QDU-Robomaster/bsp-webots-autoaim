@@ -30,8 +30,7 @@
                 "cmake.buildDirectory": "${containerWorkspaceFolder}/build/debug",
                 "cmake.configureSettings": {
                     "CMAKE_BUILD_TYPE": "Debug",
-                    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                    "AUTO_AIM_PREVIEW_IMAGE": "ON"
+                    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
                 },
                 "cmake.options.statusBarVisibility": "compact",
                 "cmake.options.advanced": {
